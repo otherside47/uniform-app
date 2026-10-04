@@ -1,0 +1,10 @@
+{
+  "name": "Uniform",
+  "short_name": "Uniform",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f1f0ea",
+  "theme_color": "#2b4a5e",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

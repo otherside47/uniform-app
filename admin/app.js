@@ -1,5 +1,5 @@
 import { boot, topbar, sb } from '../shared/auth.js';
-import { h, mount, loading, toast, errMsg } from '../shared/ui.js';
+import { h, mount, loading, toast, errMsg, drawNav as paintNav } from '../shared/ui.js';
 import { t } from '../shared/i18n.js';
 import { S, loadRefs, db } from './data.js';
 
@@ -32,8 +32,7 @@ async function render(ctx) {
   const nav = h('nav', { class: 'nav', 'aria-label': 'Menu' });
   mount(root, topbar({ title: t('app.admin'), profile: ctx.profile, onLogout: ctx.logout }), h('div', { class: 'shell' }, nav, main));
 
-  const drawNav = (current, pendingN) => mount(nav, NAV.map(([id, key]) => h('a', { href: `#/${id}`, 'aria-current': current === id ? 'page' : null },
-    t(key), id === 'requests' && pendingN ? h('span', { class: 'badge' }, pendingN) : null)));
+  const drawNav = (current, pendingN) => paintNav(nav, NAV.map(([id, key]) => [id, t(key)]), current, { badges: { requests: pendingN } });
 
   let pendingN = 0;
   async function refreshBadge(current) {

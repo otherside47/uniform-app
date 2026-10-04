@@ -1,5 +1,6 @@
 // [ru, en, tk]. Turkmen strings are a best-effort draft and need review by a native speaker.
 export const SHARED = {
+  'common.more': ['Ещё', 'More', 'Köpräk'],
   'common.close': ['Закрыть', 'Close', 'Ýapmak'],
   'common.confirm': ['Подтвердите', 'Please confirm', 'Tassyklaň'],
   'common.yes': ['Да', 'Yes', 'Hawa'],

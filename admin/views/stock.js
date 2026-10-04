@@ -23,9 +23,8 @@ export async function render(box) {
     for (const it of S.items) {
       const rows = (byItem.get(it.id) || []).filter((r) => r.on_hand > 0 || r.reserved > 0).sort((a, b) => String(a.size).localeCompare(String(b.size), undefined, { numeric: true }));
       if (!rows.length) continue;
-      itemRows.push(h('tr', { class: 'sub' }, h('td', { colspan: 5 }, itemName(it.id), it.active ? null : [' ', chip(t('common.inactive'))])));
       for (const r of rows) {
-        itemRows.push(h('tr', null, h('td', null, ''), h('td', null, r.size), h('td', { class: 'r num' }, int(r.on_hand)),
+        itemRows.push(h('tr', null, h('td', null, itemName(it.id), it.active ? null : [' ', chip(t('common.inactive'))]), h('td', null, r.size), h('td', { class: 'r num' }, int(r.on_hand)),
           h('td', { class: 'r num' }, r.reserved ? int(r.reserved) : '—'),
           h('td', { class: 'r num' }, h('b', null, int(r.available)))));
       }
@@ -39,7 +38,7 @@ export async function render(box) {
           h('button', { class: 'btn primary', type: 'button', onclick: () => openingModal(load) }, t('stock.addOpening')))),
       h('section', { class: 'section' },
         h('div', { class: 'head' }, h('h2', null, t('stock.levels')), h('span', { class: 'muted small' }, t('stock.levelsHint'))),
-        itemRows.length ? tableOf(['', t('req.size'), { label: t('stock.onHand'), r: true }, { label: t('stock.reserved'), r: true }, { label: t('stock.available'), r: true }], itemRows) : empty(t('stock.none'))),
+        itemRows.length ? tableOf([t('req.item'), t('req.size'), { label: t('stock.onHand'), r: true }, { label: t('stock.reserved'), r: true }, { label: t('stock.available'), r: true }], itemRows) : empty(t('stock.none'))),
       h('section', { class: 'section' },
         h('div', { class: 'head' }, h('h2', null, t('stock.batches')),
           h('label', { class: 'inline-check small' }, h('input', { type: 'checkbox', checked: showBatches, onchange: (e) => { showBatches = e.target.checked; load(); } }), t('stock.showBatches'))),

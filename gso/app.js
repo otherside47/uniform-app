@@ -1,5 +1,5 @@
 import { boot, topbar, sb } from '../shared/auth.js';
-import { h, mount, loading, empty, chip, bar, guardTag, tabs, money, pct, int, fmtDay, fmtDateTime, colorOf, errMsg, run } from '../shared/ui.js';
+import { h, mount, loading, empty, drawNav, chip, bar, guardTag, tabs, money, pct, int, fmtDay, fmtDateTime, colorOf, errMsg, run } from '../shared/ui.js';
 import { t, pick } from '../shared/i18n.js';
 import { tableOf } from '../admin/common.js';
 
@@ -102,7 +102,7 @@ async function render(ctx) {
   async function route() {
     const parts = (location.hash.replace(/^#\/?/, '') || 'guards').split('/');
     const id = NAV.some(([n]) => n === parts[0]) ? parts[0] : 'guards';
-    mount(nav, NAV.map(([n, key]) => h('a', { href: `#/${n}`, 'aria-current': n === id ? 'page' : null }, t(key))));
+    drawNav(nav, NAV.map(([n, key]) => [n, t(key)]), id);
     const box = h('div', { class: 'stack-lg' });
     mount(main, loading());
     try {

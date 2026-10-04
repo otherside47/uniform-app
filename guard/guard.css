@@ -26,3 +26,5 @@
 .roster li { display: flex; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--rule-soft); align-items: center; }
 .big-stamp { font-family: var(--font-num); font-size: 40px; font-weight: 600; letter-spacing: .02em; }
 @media (min-width: 700px) { .tabbar { max-width: 640px; left: 50%; transform: translateX(-50%); border: 1px solid var(--rule); border-bottom: 0; border-radius: 10px 10px 0 0; } }
+
+.gcard.sign .btn { margin-top: 12px; }

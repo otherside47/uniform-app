@@ -233,3 +233,78 @@ export function downloadText(filename, text, type = 'text/csv') {
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 }
+
+/* ---------- ledger tables on phones: every cell carries its column name, shown by CSS as a card row ---------- */
+function labelTable(tb) {
+  const heads = [...tb.querySelectorAll('thead th')].map((th) => th.textContent.trim());
+  if (!heads.length) return;
+  for (const tr of tb.querySelectorAll('tbody tr')) {
+    const cells = [...tr.children];
+    if (cells.some((c) => c.hasAttribute('colspan'))) continue;
+    cells.forEach((td, i) => {
+      if (td.tagName !== 'TD' || td.dataset.l) return;
+      td.dataset.l = '1';
+      if (heads[i]) td.setAttribute('data-label', heads[i]);
+      const v = document.createElement('span');
+      v.className = 'v';
+      while (td.firstChild) v.appendChild(td.firstChild);
+      if (v.childNodes.length) td.appendChild(v);
+    });
+  }
+}
+let labelQueued = false;
+function labelAll() {
+  labelQueued = false;
+  document.querySelectorAll('table.ledger').forEach(labelTable);
+}
+if (typeof MutationObserver !== 'undefined') {
+  new MutationObserver(() => { if (!labelQueued) { labelQueued = true; requestAnimationFrame(labelAll); } })
+    .observe(document.documentElement, { childList: true, subtree: true });
+}
+
+/* ---------- navigation: sidebar on desktop, bottom bar (4 main + "more" sheet) on phones ---------- */
+const ICONS = {
+  requests: '<path d="M4 13l2-8h12l2 8M4 13v6h16v-6M4 13h5l1 2h4l1-2h5"/>',
+  guards: '<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M16 5.5a3 3 0 010 5.5M18 14.5c2 .7 3 2.7 3 5.5"/>',
+  stock: '<path d="M3 8l9-5 9 5v8l-9 5-9-5zM3 8l9 5 9-5M12 13v8"/>',
+  planning: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>',
+  groups: '<circle cx="7" cy="9" r="2.5"/><circle cx="17" cy="9" r="2.5"/><circle cx="12" cy="14" r="2.5"/><path d="M3 19c0-2 1.8-3.5 4-3.5M21 19c0-2-1.8-3.5-4-3.5M8 21c0-2 1.8-3 4-3s4 1 4 3"/>',
+  sizes: '<path d="M3 15L15 3l6 6L9 21zM7 11l2 2M10 8l2 2M13 5l2 2"/>',
+  reviews: '<path d="M12 3l2.7 5.6 6.1.8-4.5 4.3 1.1 6.1L12 17l-5.4 2.8 1.1-6.1L3.2 9.4l6.1-.8z"/>',
+  accounts: '<circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M16 7l3 3M14 9l2 2"/>',
+  catalog: '<path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/>',
+  orders: '<path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6"/>',
+  signed: '<path d="M4 20h16M5 16l9-9 3 3-9 9H5zM13 8l3 3"/>',
+  more: '<circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/>',
+};
+function icon(id) {
+  const s = document.createElement('span');
+  s.className = 'ico'; s.setAttribute('aria-hidden', 'true');
+  s.innerHTML = `<svg viewBox="0 0 24 24">${ICONS[id] || ICONS.catalog}</svg>`; // static markup from the table above
+  return s;
+}
+
+let navOutside = null;
+/** items: [[id, label], …]; the first `main` ones stay on the phone bar, the rest go to the sheet. */
+export function drawNav(nav, items, current, { badges = {}, main = 4, prefix = '#/' } = {}) {
+  const split = items.length > main + 1 ? main : items.length;
+  const link = (id, label, cls) => h('a', { href: `${prefix}${id}`, class: cls, 'aria-current': current === id ? 'page' : null, onclick: () => nav.removeAttribute('data-open') },
+    icon(id), h('span', { class: 'lbl' }, label), badges[id] ? h('span', { class: 'badge' }, badges[id]) : null);
+  const kids = items.slice(0, split).map(([id, label]) => link(id, label, ''));
+  if (split < items.length) {
+    const rest = items.slice(split);
+    kids.push(h('div', { class: 'sep' }));
+    rest.forEach(([id, label]) => kids.push(link(id, label, 'sec')));
+    const open = nav.hasAttribute('data-open');
+    kids.push(h('button', { type: 'button', class: 'more-btn', 'aria-expanded': open ? 'true' : 'false',
+      'aria-current': rest.some(([id]) => id === current) ? 'page' : null,
+      onclick: (ev) => { ev.stopPropagation(); if (nav.hasAttribute('data-open')) nav.removeAttribute('data-open'); else nav.setAttribute('data-open', ''); } },
+      icon('more'), h('span', { class: 'lbl' }, t('common.more'))));
+    kids.push(h('div', { class: 'sheet' }, rest.map(([id, label]) => link(id, label, 'sec'))));
+  }
+  mount(nav, kids);
+  if (!navOutside) {
+    navOutside = (ev) => { const n = document.querySelector('.nav[data-open]'); if (n && !n.contains(ev.target)) n.removeAttribute('data-open'); };
+    document.addEventListener('click', navOutside);
+  }
+}

@@ -114,7 +114,7 @@ export async function renderDetail(box, { no }) {
       h('section', { class: 'section' },
         h('div', { class: 'head' }, h('h2', null, t('guards.sizes'))),
         tableOf([t('catalog.sizeType'), t('guards.size')],
-          S.sizeTypes.map((st) => h('tr', null, h('td', null, pick(st)), h('td', null, sizeByType.get(st.code) || h('span', { class: 'muted' }, t('guards.sizeMissing')))))),
+          S.sizeTypes.filter((st) => st.active).map((st) => h('tr', null, h('td', null, pick(st)), h('td', null, sizeByType.get(st.code) || h('span', { class: 'muted' }, t('guards.sizeMissing')))))),
         changes.length ? h('div', { style: 'margin-top:12px' }, tableOf([t('sizes.when'), t('catalog.sizeType'), t('sizes.change')],
           changes.map((c) => h('tr', { class: 'sub' }, h('td', { class: 'nowrap' }, fmtDateTime(c.changed_at)), h('td', null, typeName(c.size_type)),
             h('td', null, c.old_value ? `${c.old_value} → ${c.new_value}` : t('sizes.initial', { v: c.new_value })))))) : null),

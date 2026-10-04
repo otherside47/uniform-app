@@ -41,7 +41,7 @@ function itemModal(it, reload) {
   const sku = text(it?.sku || '');
   const season = h('select', null, ['summer', 'winter', 'all_year'].map((s) => h('option', { value: s }, seasonName(s))));
   season.value = it?.season || 'all_year';
-  const type = h('select', null, S.sizeTypes.map((x) => h('option', { value: x.code }, pick(x))));
+  const type = h('select', null, S.sizeTypes.filter((x) => x.active || x.code === it?.size_type).map((x) => h('option', { value: x.code }, pick(x))));
   if (it) type.value = it.size_type;
   const wear = h('input', { type: 'number', min: 1, step: 1, value: it?.wear_months ?? 12 });
   const norm = h('input', { type: 'number', min: 1, step: 1, value: it?.norm_qty ?? 1 });
@@ -66,21 +66,22 @@ function typesTab(body, reload) {
     h('div', { class: 'head' }, h('h2', null, t('catalog.sizeTypes')), h('button', { class: 'btn primary', type: 'button', onclick: () => typeModal(null, reload) }, t('catalog.addType'))),
     tableOf([t('catalog.code'), t('catalog.sizeType'), t('catalog.options')],
       S.sizeTypes.map((x) => h('tr', { class: 'click', tabindex: 0, onclick: () => typeModal(x, reload), onkeydown: (e) => { if (e.key === 'Enter') typeModal(x, reload); } },
-        h('td', { class: 'muted small' }, x.code), h('td', null, pick(x)), h('td', { class: 'small' }, x.options.join(', ')))))));
+        h('td', { class: 'muted small' }, x.code), h('td', null, pick(x), x.active ? null : [' ', chip(t('common.inactive'))]), h('td', { class: 'small' }, x.options.join(', ')))))));
 }
 function typeModal(x, reload) {
   const n = names3(x || {});
   const code = text(x?.code || '', { disabled: !!x, pattern: '[a-z0-9_]{2,30}' });
   const opts = h('textarea', { rows: 3, placeholder: 'S, M, L, XL' }, x ? x.options.join(', ') : '');
   const order = h('input', { type: 'number', step: 1, value: x?.sort_order ?? (S.sizeTypes.length + 1) * 10 });
+  const active = h('input', { type: 'checkbox', checked: x ? x.active : true });
   openModal({
     title: x ? pick(x) : t('catalog.addType'),
-    body: h('div', { class: 'stack' }, field(t('catalog.code'), code), names3Fields(n), field(t('catalog.optionsHint'), opts), field(t('catalog.order'), order),
+    body: h('div', { class: 'stack' }, field(t('catalog.code'), code), names3Fields(n), field(t('catalog.optionsHint'), opts), field(t('catalog.order'), order), h('label', { class: 'inline-check' }, active, t('catalog.active')),
       h('p', { class: 'muted small' }, t('catalog.optionsWarn'))),
     actions: [{ label: t('common.cancel') }, { label: t('common.save'), kind: 'primary', onClick: async () => {
       need(code.value, n.ru.value, n.en.value, n.tk.value, opts.value);
       const options = [...new Set(opts.value.split(/[,\n;]/).map((s) => s.trim()).filter(Boolean))];
-      const row = { name_ru: n.ru.value.trim(), name_en: n.en.value.trim(), name_tk: n.tk.value.trim(), options, sort_order: Number(order.value) };
+      const row = { name_ru: n.ru.value.trim(), name_en: n.en.value.trim(), name_tk: n.tk.value.trim(), options, sort_order: Number(order.value), active: active.checked };
       if (x) await db(sb.from('size_types').update(row).eq('code', x.code)); else await db(sb.from('size_types').insert({ code: code.value.trim(), ...row }));
       toast(t('common.saved'), 'ok'); await reload();
     } }],

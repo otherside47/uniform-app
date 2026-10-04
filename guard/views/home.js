@@ -47,7 +47,7 @@ export async function render(box, ctx, onChange) {
       }
       return h('div', { class: 'item-row' },
         h('div', null, h('div', { class: 'name' }, pick(it)),
-          h('div', { class: 'muted small' }, `${seasonName(it.season)} · ${size ? `${t('g.size')} ${size}` : t('g.sizeNone')}`, st.last_issued ? ` · ${t('g.last', { date: fmtDay(st.last_issued) })}` : ''),
+          h('div', { class: 'muted small' }, `${seasonName(it.season)} · ${size === 'ONE' ? t('g.oneSize') : size ? `${t('g.size')} ${size}` : t('g.sizeNone')}`, st.last_issued ? ` · ${t('g.last', { date: fmtDay(st.last_issued) })}` : ''),
           h('div', { style: 'margin-top:4px' }, state)),
         action);
     };

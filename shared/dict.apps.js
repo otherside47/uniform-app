@@ -13,6 +13,7 @@ export const APPS = {
   'g.noneReceived': ['Пока ничего не получено', 'Nothing received yet', 'Entek hiç zat alynmady'],
   'g.size': ['размер', 'size', 'ölçeg'],
   'g.sizeNone': ['размер не указан', 'size not set', 'ölçeg görkezilmedi'],
+  'g.oneSize': ['один размер', 'one size', 'bir ölçeg'],
   'g.last': ['выдано {date}', 'issued {date}', 'berlen {date}'],
   'g.due': ['Пора менять', 'Due for replacement', 'Çalyşmaly wagty geldi'],
   'g.dueFirst': ['Положено', 'You are due', 'Degişli'],

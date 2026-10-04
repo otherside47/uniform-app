@@ -4,7 +4,7 @@ import { t, pick } from '../../shared/i18n.js';
 import { G, db } from '../data.js';
 
 export async function render(box, ctx) {
-  const used = [...new Set(G.items.map((i) => i.size_type))].map((c) => G.typeByCode.get(c)).filter(Boolean);
+  const used = [...new Set(G.items.map((i) => i.size_type))].map((c) => G.typeByCode.get(c)).filter((x) => x && x.options.length > 1);
   const rows = used.map((type) => {
     const cur = G.sizes.get(type.code) || '';
     const sel = h('select', { 'aria-label': pick(type), style: 'min-height:44px' },

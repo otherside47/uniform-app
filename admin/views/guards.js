@@ -63,6 +63,7 @@ export async function renderDetail(box, { no }) {
     const remaining = limitUsd() - Number(me.spent);
     const statusById = new Map(status.map((s) => [s.item_id, s]));
     const sizeByType = new Map(sizes.map((s) => [s.size_type, s.value]));
+    for (const st of S.sizeTypes) if (!sizeByType.has(st.code) && st.options.length === 1) sizeByType.set(st.code, st.options[0]);
 
     mount(page,
       h('div', null, h('a', { href: '#/guards', class: 'small' }, `← ${t('nav.guards')}`)),
@@ -152,7 +153,7 @@ async function manualIssuance(p, reload) {
   const levels = levelsMap(levelRows);
   const mine = new Map(sizes.map((s) => [s.size_type, s.value]));
   const rows = S.items.filter((i) => i.active).map((i) => {
-    const size = sizeSelect(i.size_type, mine.get(i.size_type) || '', { blank: true });
+    const size = sizeSelect(i.size_type, mine.get(i.size_type) || (S.typeByCode.get(i.size_type)?.options.length === 1 ? S.typeByCode.get(i.size_type).options[0] : ''), { blank: true });
     const qty = h('input', { type: 'number', min: 0, max: i.norm_qty * 3, value: 0, style: 'width:72px' });
     const stock = h('span', { class: 'small' });
     const upd = () => {

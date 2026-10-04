@@ -20,5 +20,11 @@ export async function loadRefs(profile) {
 export const itemName = (id) => { const i = G.itemById.get(id); return i ? pick(i) : '?'; };
 export const typeName = (code) => { const x = G.typeByCode.get(code); return x ? pick(x) : code; };
 export const seasonName = (s) => t(`season.${s}`);
-export const mySize = (item) => G.sizes.get(item.size_type) || '';
-export const linesText = (lines) => lines.map((l) => `${itemName(l.item_id)} ${l.size} ×${l.qty}`).join('; ');
+// a size type with a single option ("one size") needs no input
+export const mySize = (item) => {
+  const own = G.sizes.get(item.size_type);
+  if (own) return own;
+  const type = G.typeByCode.get(item.size_type);
+  return type && type.options.length === 1 ? type.options[0] : '';
+};
+export const linesText = (lines) => lines.map((l) => `${itemName(l.item_id)}${l.size === 'ONE' ? '' : ` ${l.size}`} ×${l.qty}`).join('; ');

@@ -53,7 +53,7 @@ export const personName = (id) => S.names.get(id) || '';
 export const seasonName = (s) => t(`season.${s}`);
 
 export function linesText(lines) {
-  return lines.map((l) => `${itemName(l.item_id)} ${l.size} ×${l.qty}`).join('; ');
+  return lines.map((l) => `${itemName(l.item_id)}${l.size === 'ONE' ? '' : ` ${l.size}`} ×${l.qty}`).join('; ');
 }
 
 export const levelKey = (item, size) => `${item}|${size}`;

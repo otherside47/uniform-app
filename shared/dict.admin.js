@@ -217,7 +217,7 @@ export const ADMIN = {
   'acc.create': ['Создать аккаунт', 'Create account', 'Hasap döret'],
   'acc.created': ['Аккаунт создан', 'Account created', 'Hasap döredildi'],
   'acc.bulk': ['Загрузить список охранников', 'Import guards', 'Garawullary ýükle'],
-  'acc.bulkHint': ['По одному в строке: номер; ФИО. Каждому будет создан временный PIN.', 'One per line: number; full name. A temporary PIN is created for each.', 'Her setirde biri: belgi; ady. Hersine wagtlaýyn PIN döredilýär.'],
+  'acc.bulkHint': ['Номера охранников: диапазон (1-100) или по одному в строке. Каждому будет создан временный PIN. Имена не нужны.', 'Guard numbers: a range (1-100) or one per line. A temporary PIN is created for each. No names needed.', 'Garawul belgileri: aralyk (1-100) ýa-da her setirde biri. Hersine wagtlaýyn PIN döredilýär. Ady gerek däl.'],
   'acc.bulkRun': ['Создать', 'Create', 'Döret'],
   'acc.bulkDone': ['Создано: {ok}, с ошибкой: {fail}', 'Created: {ok}, failed: {fail}', 'Döredildi: {ok}, ýalňyş: {fail}'],
   'acc.badLine': ['Не понял строку', 'Cannot read this line', 'Setiri düşünmedim'],

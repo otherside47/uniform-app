@@ -56,14 +56,16 @@ export async function render(box, { me }) {
     const isOwner = h('input', { type: 'checkbox' });
     const hired = h('input', { type: 'date' });
     const lang = h('select', null, [['ru', 'Русский'], ['en', 'English'], ['tk', 'Türkmen']].map(([v, l]) => h('option', { value: v }, l)));
+    const nameBox = field(t('acc.name'), name);
+    nameBox.classList.add('hidden');
     const guardBox = h('div', { class: 'stack' }, field(t('acc.guardNo'), no), field(t('acc.hired'), hired), h('p', { class: 'muted small' }, t('acc.pinAuto')));
     const staffBox = h('div', { class: 'stack hidden' }, field(t('acc.login'), login), field(t('acc.tempPassword'), pass),
       h('label', { class: 'inline-check' }, isOwner, t('acc.makeOwner')));
-    role.addEventListener('change', () => { const g = role.value === 'guard'; guardBox.classList.toggle('hidden', !g); staffBox.classList.toggle('hidden', g); isOwner.parentElement.classList.toggle('hidden', role.value !== 'admin'); });
+    role.addEventListener('change', () => { const g = role.value === 'guard'; nameBox.classList.toggle('hidden', g); guardBox.classList.toggle('hidden', !g); staffBox.classList.toggle('hidden', g); isOwner.parentElement.classList.toggle('hidden', role.value !== 'admin'); });
     openModal({ title: t('acc.create'),
-      body: h('div', { class: 'stack' }, field(t('acc.role'), role), field(t('acc.name'), name), field(t('auth.language'), lang), guardBox, staffBox),
+      body: h('div', { class: 'stack' }, field(t('acc.role'), role), nameBox, field(t('auth.language'), lang), guardBox, staffBox),
       actions: [{ label: t('common.cancel') }, { label: t('common.save'), kind: 'primary', onClick: async () => {
-        if (!name.value.trim()) throw new Error(t('catalog.fillAll'));
+        if (role.value !== 'guard' && !name.value.trim()) throw new Error(t('catalog.fillAll'));
         const spec = { role: role.value, full_name: name.value.trim(), language: lang.value };
         if (role.value === 'guard') { spec.guard_no = Number(no.value); if (hired.value) spec.hired_on = hired.value; }
         else { spec.login = login.value.trim(); spec.password = pass.value; spec.is_owner = role.value === 'admin' && isOwner.checked; }
@@ -75,16 +77,20 @@ export async function render(box, { me }) {
   }
 
   function bulkModal(reload) {
-    const ta = h('textarea', { rows: 10, placeholder: '12; Иван Иванов\n13; Мырат Аталыев', spellcheck: 'false' });
+    const ta = h('textarea', { rows: 10, placeholder: '1-100', spellcheck: 'false' });
     openModal({ title: t('acc.bulk'), wide: true,
       body: h('div', { class: 'stack' }, h('p', { class: 'muted small' }, t('acc.bulkHint')), ta),
       actions: [{ label: t('common.cancel') }, { label: t('acc.bulkRun'), kind: 'primary', onClick: async () => {
         const rows = [];
+        const seen = new Set();
         for (const line of ta.value.split('\n')) {
           const s = line.trim(); if (!s) continue;
-          const m = s.match(/^(\d+)\s*[;,\t]\s*(.+)$/);
+          // "12", "12; name" or a range "1-100"
+          const m = s.match(/^(\d+)(?:\s*-\s*(\d+))?(?:\s*[;,\t]\s*(.+))?$/);
           if (!m) throw new Error(`${t('acc.badLine')}: ${s}`);
-          rows.push({ guard_no: Number(m[1]), full_name: m[2].trim() });
+          const from = Number(m[1]), to = m[2] ? Number(m[2]) : from;
+          if (to < from || to - from > 299) throw new Error(`${t('acc.badLine')}: ${s}`);
+          for (let n = from; n <= to; n++) { if (!seen.has(n)) { seen.add(n); rows.push({ guard_no: n, full_name: m[3] ? m[3].trim() : '' }); } }
         }
         if (!rows.length) throw new Error(t('acc.badLine'));
         const r = await manage({ action: 'bulk_create_guards', rows });

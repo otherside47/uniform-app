@@ -96,6 +96,7 @@ const ERRORS = [
   [/is not allowed for/i, 'err.sizeNotAllowed'], [/immutable/i, 'err.immutable'],
   [/signed records/i, 'err.immutable'], [/last active owner/i, 'err.lastOwner'],
   [/cannot deactivate yourself/i, 'err.selfDeactivate'], [/nothing left to close/i, 'err.nothingToClose'],
+  [/repeat issuance/i, 'err.repeat'],
   [/failed to fetch|networkerror|load failed/i, 'err.network'],
 ];
 export function errMsg(e) {

@@ -154,7 +154,7 @@ async function manualIssuance(p, reload) {
   const mine = new Map(sizes.map((s) => [s.size_type, s.value]));
   const rows = S.items.filter((i) => i.active).map((i) => {
     const size = sizeSelect(i.size_type, mine.get(i.size_type) || (S.typeByCode.get(i.size_type)?.options.length === 1 ? S.typeByCode.get(i.size_type).options[0] : ''), { blank: true });
-    const qty = h('input', { type: 'number', min: 0, max: i.norm_qty * 3, value: 0, style: 'width:72px' });
+    const qty = h('input', { type: 'number', min: 0, max: i.norm_qty, value: 0, style: 'width:72px' });
     const stock = h('span', { class: 'small' });
     const upd = () => {
       const lv = levels.get(levelKey(i.id, size.value));
@@ -165,13 +165,18 @@ async function manualIssuance(p, reload) {
     size.addEventListener('change', upd); qty.addEventListener('input', upd); upd();
     return { item: i, size, qty, node: h('tr', null, h('td', null, pick(i)), h('td', null, size), h('td', null, qty), h('td', null, stock)) };
   });
-  const urgent = h('input', { type: 'checkbox' });
+  const kind = h('select', null, ['planned', 'hire', 'lost', 'unfit'].map((k) => h('option', { value: k }, t(`guards.kind.${k}`))));
+  const needsNote = () => ['lost', 'unfit'].includes(kind.value);
   const reason = h('textarea');
   const paper = h('input', { type: 'checkbox' });
   const reasonBox = h('div', { class: 'stack hidden' },
+    h('p', { class: 'banner warn', style: 'margin:0' }, t('guards.repeatHint')),
     h('label', { class: 'field' }, h('span', null, t('guards.urgentReason')), reason),
     h('label', { class: 'inline-check' }, paper, t('req.paperForm')));
-  urgent.addEventListener('change', () => reasonBox.classList.toggle('hidden', !urgent.checked));
+  kind.addEventListener('change', () => {
+    reasonBox.classList.toggle('hidden', !needsNote());
+    for (const r of rows) r.qty.max = kind.value === 'planned' ? r.item.norm_qty : Math.max(r.item.norm_qty, r.item.hire_qty || 1);
+  });
   const err = h('p', { class: 'error-text hidden' });
 
   openModal({
@@ -179,7 +184,7 @@ async function manualIssuance(p, reload) {
     body: h('div', { class: 'stack' },
       h('p', { class: 'muted small' }, t('guards.issueHint')),
       tableOf([t('req.item'), t('req.size'), t('req.qty'), t('req.stock')], rows.map((r) => r.node)),
-      h('label', { class: 'inline-check' }, urgent, t('guards.urgent')), reasonBox, err),
+      h('label', { class: 'field' }, h('span', null, t('guards.kind')), kind), reasonBox, err),
     actions: [
       { label: t('common.cancel') },
       { label: t('guards.sendSign'), kind: 'primary', keepOpen: true, onClick: async ({ close }) => {
@@ -188,10 +193,10 @@ async function manualIssuance(p, reload) {
         const fail = (m) => { err.textContent = m; err.classList.remove('hidden'); return false; };
         if (!lines.length) return fail(t('guards.pickItems'));
         if (lines.some((l) => !l.size)) return fail(t('err.sizeRequired'));
-        if (urgent.checked && !reason.value.trim()) return fail(t('err.reasonRequired'));
-        await db(sb.rpc('create_manual_issuance', {
-          p_guard: p.id, p_lines: lines, p_urgent: urgent.checked, p_reason: urgent.checked ? reason.value.trim() : null,
-          p_paper_done: urgent.checked && paper.checked, p_paper_on: urgent.checked && paper.checked ? new Date().toISOString().slice(0, 10) : null,
+        if (needsNote() && !reason.value.trim()) return fail(t('err.reasonRequired'));
+        await db(sb.rpc('issue_manually', {
+          p_guard: p.id, p_lines: lines, p_kind: kind.value, p_reason: needsNote() ? reason.value.trim() : null,
+          p_paper_done: needsNote() && paper.checked, p_paper_on: needsNote() && paper.checked ? new Date().toISOString().slice(0, 10) : null,
         }));
         toast(t('req.sent'), 'ok'); close(); await reload(); return false;
       } },

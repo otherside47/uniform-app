@@ -34,6 +34,7 @@ export const SHARED = {
   'err.lastOwner': ['Нельзя отключить последнего главного админа', 'The last main admin cannot be disabled', 'Soňky baş administratory öçürmek bolmaýar'],
   'err.selfDeactivate': ['Нельзя отключить самого себя', 'You cannot disable yourself', 'Özüňizi öçürip bolmaýar'],
   'err.nothingToClose': ['Закрывать нечего', 'Nothing left to close', 'Ýapmaga zat ýok'],
+  'err.repeat': ['Повторная выдача до срока возможна только при утере или непригодности', 'An early re-issue is possible only for lost or unfit items', 'Möhletinden öň gaýtadan bermek diňe ýitirilen ýa-da ýaramsyz zatlar üçin mümkin'],
   'err.network': ['Нет связи с сервером', 'Cannot reach the server', 'Serwere baglanyp bolmady'],
   'err.unknown': ['Что-то пошло не так', 'Something went wrong', 'Bir zat nädogry boldy'],
   'err.wrongApp': ['Этот аккаунт не для этого приложения', 'This account is not for this app', 'Bu hasap bu programma üçin däl'],

@@ -70,7 +70,7 @@ export async function render(box) {
             h('td', { class: 'nowrap' }, fmtDateTime(i.signed_at)),
             h('td', null, guardChip(i.guard_id)),
             h('td', null, linesText(linesOf(i.id))),
-            h('td', null, sourceChip(i.source)),
+            h('td', null, sourceChip(i.source, i.reason_kind)),
             h('td', null, i.source === 'urgent' ? chip(i.paper_form_done ? t('req.paperDone', { date: fmtDay(i.paper_form_on) }) : t('req.paperMissing'), i.paper_form_done ? 'ok' : 'bad') : '')))) : empty(t('req.noRecent'))),
     );
   }
@@ -81,7 +81,7 @@ export async function render(box) {
         h('td', { class: 'nowrap' }, fmtDateTime(i.created_at)),
         h('td', null, guardChip(i.guard_id)),
         h('td', null, linesText(linesOf(i.id)), i.urgent_reason ? h('div', { class: 'muted small' }, `${t('req.reason')}: ${i.urgent_reason}`) : null),
-        h('td', null, sourceChip(i.source)),
+        h('td', null, sourceChip(i.source, i.reason_kind)),
         h('td', null, i.source === 'urgent' ? h('label', { class: 'inline-check small' },
           h('input', { type: 'checkbox', checked: i.paper_form_done, onchange: (e) => run(e.currentTarget, async () => {
             await db(sb.rpc('set_paper_form', { p_issuance: i.id, p_done: e.currentTarget.checked, p_on: new Date().toISOString().slice(0, 10) }));

@@ -7,8 +7,9 @@ export function guardChip(guardId, extra = {}) {
   return guardTag(p ? p.guard_no : '?', { size: 'sm', name: '', href: p ? `#/guards/${p.guard_no}` : null, ...extra });
 }
 
-export function sourceChip(src) {
+export function sourceChip(src, reasonKind) {
   const kind = { request: 'info', group: 'ok', urgent: 'bad', manual: '' }[src] || '';
+  if (reasonKind && reasonKind !== 'planned') return chip(t(`guards.kind.${reasonKind}`), kind);
   return chip(t(`src.${src}`), kind);
 }
 

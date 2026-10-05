@@ -8,7 +8,7 @@ const NAV = [['guards', 'gso.nav.guards'], ['orders', 'gso.nav.orders'], ['signe
 const COLOR_CHIP = { green: 'ok', yellow: 'warn', rust: 'rust', red: 'bad' };
 const fyStart = () => { const d = new Date(); const y = d.getFullYear(); return `${d.getMonth() >= 8 ? y : y - 1}-09-01`; };
 
-let items = new Map(), bases = new Map(), th = { green: 60, yellow: 80, rust: 95 }, limit = 800;
+let items = new Map(), bases = new Map(), th = { green: 60, yellow: 80, rust: 95 }, limit = 400;
 const itemName = (id) => { const i = items.get(id); return i ? pick(i) : '?'; };
 let cleanup = null, onHash = null;
 
@@ -17,7 +17,7 @@ async function loadRefs() {
   items = new Map(its.map((x) => [x.id, x])); bases = new Map(bs.map((x) => [x.id, x]));
   const s = Object.fromEntries(st.map((x) => [x.key, Number(x.value)]));
   th = { green: s.budget_green_max ?? 60, yellow: s.budget_yellow_max ?? 80, rust: s.budget_rust_max ?? 95 };
-  limit = s.fy_limit_usd ?? 800;
+  limit = s.fy_limit_usd ?? 400;
 }
 
 /* ---------- guards (numbers only) + squad budget ---------- */

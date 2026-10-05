@@ -41,7 +41,7 @@ export async function loadRefs() {
 }
 
 export const num = (k, d = 0) => (S.settings[k] !== undefined ? Number(S.settings[k]) : d);
-export const limitUsd = () => num('fy_limit_usd', 800);
+export const limitUsd = () => num('fy_limit_usd', 400);
 export const landDays = () => num('land_days', 180);
 export const airDays = () => num('air_days', 30);
 export const thresholds = () => ({ green: num('budget_green_max', 60), yellow: num('budget_yellow_max', 80), rust: num('budget_rust_max', 95) });

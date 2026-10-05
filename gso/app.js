@@ -49,7 +49,7 @@ async function ledgerView(box, no) {
       bar({ pct: Math.min(Number(spend.pct || 0), 100), color: colorOf(spend.pct, th), thresholds: th, big: true, label: t('guards.limit') })) : null,
     h('section', { class: 'section' }, h('div', { class: 'head' }, h('h2', null, t('guards.received'))),
       rows.length ? tableOf([t('gso.date'), t('req.item'), t('req.size'), { label: t('req.qty'), r: true }, { label: t('stock.price'), r: true }, { label: t('guards.sum'), r: true }, t('req.source')],
-        rows.map((r) => h('tr', null, h('td', { class: 'nowrap' }, fmtDay(r.signed_at)), h('td', null, itemName(r.item_id)), h('td', null, r.size), h('td', { class: 'r num' }, r.qty),
+        rows.map((r) => h('tr', null, h('td', { class: 'nowrap' }, fmtDay(r.signed_at)), h('td', null, itemName(r.item_id), items.get(r.item_id)?.in_budget === false ? [' ', chip(t('guards.outOfBudget'))] : null), h('td', null, r.size), h('td', { class: 'r num' }, r.qty),
           h('td', { class: 'r num' }, money(r.unit_price)), h('td', { class: 'r num' }, money(r.line_total)), h('td', null, chip(t(`src.${r.source}`), r.source === 'urgent' ? 'bad' : ''), r.in_fy ? null : [' ', chip(t('gso.prevFy'), '')])))) : empty(t('guards.nothingReceived'))));
 }
 

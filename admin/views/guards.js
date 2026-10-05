@@ -106,7 +106,7 @@ export async function renderDetail(box, { no }) {
         h('div', { class: 'head' }, h('h2', null, t('guards.received')), h('span', { class: 'muted small' }, t('guards.receivedHint'))),
         ledger.length ? tableOf([t('req.signedAt'), t('req.item'), t('req.size'), { label: t('req.qty'), r: true }, { label: t('stock.price'), r: true }, { label: t('guards.sum'), r: true }, t('req.source')],
           [...ledger.map((r) => h('tr', { class: r.in_fy ? '' : 'sub' },
-            h('td', { class: 'nowrap' }, fmtDateTime(r.signed_at)), h('td', null, itemName(r.item_id)), h('td', null, r.size),
+            h('td', { class: 'nowrap' }, fmtDateTime(r.signed_at)), h('td', null, itemName(r.item_id), S.itemById.get(r.item_id)?.in_budget === false ? [' ', chip(t('guards.outOfBudget'))] : null), h('td', null, r.size),
             h('td', { class: 'r num' }, `×${r.qty}`), h('td', { class: 'r num' }, money(r.unit_price)), h('td', { class: 'r num' }, money(r.line_total)),
             h('td', null, sourceChip(r.source)))),
           h('tr', { class: 'total' }, h('td', { colspan: 5 }, t('guards.fyTotal')), h('td', { class: 'r num' }, money(me.spent)), h('td'))]) : empty(t('guards.nothingReceived'))),

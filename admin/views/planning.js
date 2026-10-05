@@ -77,11 +77,14 @@ export async function render(box) {
     const total = h('b', { class: 'num' }, money(0));
     const linesBox = h('tbody');
     const lines = [];
-    const recalc = () => { total.textContent = money(lines.reduce((s, l) => s + (Number(l.qty.value) || 0) * (Number(l.price.value) || 0), 0)); };
+    const recalc = () => {
+      const sum = (only) => lines.reduce((s, l) => s + (only && S.itemById.get(l.item.value)?.in_budget === false ? 0 : (Number(l.qty.value) || 0) * (Number(l.price.value) || 0)), 0);
+      total.textContent = money(sum(false)) + (sum(true) !== sum(false) ? ` (${t('plan.inBudgetPart')}: ${money(sum(true))})` : '');
+    };
     function addLine() {
       const l = { item: itemSelect('', { blank: true }), sizeCell: h('td'), qty: h('input', { type: 'number', min: 1, step: 1, style: 'width:80px', oninput: recalc }), price: h('input', { type: 'number', min: 0, step: '0.01', style: 'width:90px', oninput: recalc }), size: null };
       const drawSize = () => { const it = S.itemById.get(l.item.value); l.size = it ? sizeSelect(it.size_type, '', { blank: true }) : h('select', { disabled: true }); mount(l.sizeCell, l.size); };
-      l.item.addEventListener('change', drawSize); drawSize();
+      l.item.addEventListener('change', () => { drawSize(); recalc(); }); drawSize();
       const tr = h('tr', null, h('td', null, l.item), l.sizeCell, h('td', null, l.qty), h('td', null, l.price),
         h('td', null, h('button', { class: 'btn ghost sm', type: 'button', 'aria-label': t('common.remove'), onclick: () => { lines.splice(lines.indexOf(l), 1); tr.remove(); recalc(); } }, '✕')));
       l.tr = tr; lines.push(l); linesBox.appendChild(tr);

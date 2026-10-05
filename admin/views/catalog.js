@@ -40,10 +40,10 @@ export async function render(box) {
 function itemsTab(body, reload) {
   mount(body, h('section', { class: 'section' },
     h('div', { class: 'head' }, h('h2', null, t('catalog.items')), h('button', { class: 'btn primary', type: 'button', onclick: () => itemModal(null, reload) }, t('catalog.addItem'))),
-    S.items.length ? tableOf([t('catalog.sku'), t('req.item'), t('catalog.season'), t('catalog.sizeType'), { label: t('catalog.wear'), r: true }, { label: t('catalog.norm'), r: true }, ''],
+    S.items.length ? tableOf([t('catalog.sku'), t('req.item'), t('catalog.season'), t('catalog.sizeType'), { label: t('catalog.wear'), r: true }, { label: t('catalog.norm'), r: true }, t('catalog.budget')],
       S.items.map((i) => h('tr', { class: 'click', tabindex: 0, onclick: () => itemModal(i, reload), onkeydown: (e) => { if (e.key === 'Enter') itemModal(i, reload); } },
         h('td', { class: 'muted small' }, i.sku || ''), h('td', null, pick(i), i.active ? null : [' ', chip(t('common.inactive'))]),
-        h('td', null, seasonName(i.season)), h('td', null, typeName(i.size_type)), h('td', { class: 'r num' }, wearText(i.wear_months)), h('td', { class: 'r num' }, i.norm_qty), h('td', null, '')))) : empty(t('catalog.noItems'))));
+        h('td', null, seasonName(i.season)), h('td', null, typeName(i.size_type)), h('td', { class: 'r num' }, wearText(i.wear_months)), h('td', { class: 'r num' }, i.norm_qty), h('td', null, i.in_budget ? chip(t('catalog.yes'), 'ok') : chip(t('catalog.no'), ''))))) : empty(t('catalog.noItems'))));
 }
 function itemModal(it, reload) {
   const n = names3(it || {});
@@ -55,14 +55,16 @@ function itemModal(it, reload) {
   const wear = h('input', { type: 'number', min: 0.5, step: 0.5, value: it ? it.wear_months / 12 : 1 });
   const norm = h('input', { type: 'number', min: 1, step: 1, value: it?.norm_qty ?? 1 });
   const active = h('input', { type: 'checkbox', checked: it ? it.active : true });
+  const inBudget = h('input', { type: 'checkbox', checked: it ? it.in_budget : true });
   openModal({
     title: it ? pick(it) : t('catalog.addItem'),
     body: h('div', { class: 'stack' }, names3Fields(n), h('div', { class: 'grid2' }, field(t('catalog.sku'), sku), field(t('catalog.season'), season)),
       h('div', { class: 'grid3' }, field(t('catalog.sizeType'), type), field(t('catalog.wearMonths'), wear), field(t('catalog.norm'), norm)),
+      h('label', { class: 'inline-check' }, inBudget, t('catalog.inBudget')), h('p', { class: 'muted small' }, t('catalog.inBudgetHint')),
       h('label', { class: 'inline-check' }, active, t('catalog.active')), it ? h('p', { class: 'muted small' }, t('catalog.noDelete')) : null),
     actions: [{ label: t('common.cancel') }, { label: t('common.save'), kind: 'primary', onClick: async () => {
       need(n.ru.value, n.en.value, n.tk.value, type.value);
-      const row = { name_ru: n.ru.value.trim(), name_en: n.en.value.trim(), name_tk: n.tk.value.trim(), sku: sku.value.trim() || null, season: season.value, size_type: type.value, wear_months: Math.round(Number(wear.value) * 12), norm_qty: Number(norm.value), active: active.checked };
+      const row = { name_ru: n.ru.value.trim(), name_en: n.en.value.trim(), name_tk: n.tk.value.trim(), sku: sku.value.trim() || null, season: season.value, size_type: type.value, wear_months: Math.round(Number(wear.value) * 12), norm_qty: Number(norm.value), in_budget: inBudget.checked, active: active.checked };
       if (it) await db(sb.from('items').update(row).eq('id', it.id)); else await db(sb.from('items').insert(row));
       toast(t('common.saved'), 'ok'); await reload();
     } }],

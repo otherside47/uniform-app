@@ -145,7 +145,8 @@ function baseModal(b, reload) {
 const SETTINGS = [['fy_limit_usd', 'catalog.s.limit', '$'], ['land_days', 'catalog.s.land', ''], ['air_days', 'catalog.s.air', ''],
   ['budget_green_max', 'catalog.s.green', '%'], ['budget_yellow_max', 'catalog.s.yellow', '%'], ['budget_rust_max', 'catalog.s.rust', '%']];
 function settingsTab(body, reload) {
-  const inputs = SETTINGS.map(([key]) => h('input', { type: 'number', step: 'any', min: 0, value: S.settings[key] ?? '' }));
+  const owner = !!S.me?.is_owner;
+  const inputs = SETTINGS.map(([key]) => h('input', { type: 'number', step: 'any', min: 0, value: S.settings[key] ?? '', disabled: !owner }));
   const btn = h('button', { class: 'btn primary', type: 'button', onclick: () => run(btn, async () => {
     const vals = inputs.map((i) => i.value);
     if (vals.some((v) => v === '' || Number(v) < 0)) throw new Error(t('catalog.fillAll'));
@@ -154,6 +155,6 @@ function settingsTab(body, reload) {
     await db(sb.from('app_settings').upsert(SETTINGS.map(([key], i) => ({ key, value: String(vals[i]) }))));
     toast(t('common.saved'), 'ok'); await reload();
   }) }, t('common.save'));
-  mount(body, h('section', { class: 'section' }, h('div', { class: 'head' }, h('h2', null, t('catalog.settings'))),
-    h('div', { class: 'stack', style: 'max-width:420px' }, SETTINGS.map(([, k, unit], i) => field(`${t(k)}${unit ? ` (${unit})` : ''}`, inputs[i])), btn)));
+  mount(body, h('section', { class: 'section' }, h('div', { class: 'head' }, h('h2', null, t('catalog.settings')), owner ? null : h('span', { class: 'muted small' }, t('catalog.ownersOnly'))),
+    h('div', { class: 'stack', style: 'max-width:420px' }, SETTINGS.map(([, k, unit], i) => field(`${t(k)}${unit ? ` (${unit})` : ''}`, inputs[i])), owner ? btn : null)));
 }

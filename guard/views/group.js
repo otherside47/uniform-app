@@ -21,10 +21,11 @@ export async function render(box, ctx, onChange) {
     const gById = new Map(groups.map((g) => [g.id, g]));
     const mine = mem.find((m) => ['joined', 'confirmed'].includes(m.status) && gById.has(m.group_id));
     const invites = mem.filter((m) => m.status === 'invited' && gById.has(m.group_id));
-    const [slots, myReqs, status] = await Promise.all([
+    const [slots, myReqs, status, gHints] = await Promise.all([
       db(sb.from('pickup_slots').select('*').order('starts_at')),
       mine ? db(sb.from('item_requests').select('*').eq('guard_id', me.id).eq('group_id', mine.group_id).eq('status', 'open')) : [],
       mine ? db(sb.rpc('item_status')) : [],
+      mine ? db(sb.rpc('group_stock_hint', { p_group: mine.group_id })).catch(() => []) : [],
     ]);
     const roster = mine ? await db(sb.rpc('group_roster', { p_group: mine.group_id })) : [];
     const inviteInfo = [];
@@ -36,7 +37,7 @@ export async function render(box, ctx, onChange) {
     if (!alive) return;
     const out = [h('div', null, h('h1', null, t('g.tab.group')), h('p', { class: 'muted small' }, t('g.groupSub')))];
     if (inviteInfo.length) out.push(...inviteInfo.map((x) => inviteCard(x)));
-    if (mine) out.push(groupCard(gById.get(mine.group_id), mine, roster, slots, myReqs, status));
+    if (mine) out.push(groupCard(gById.get(mine.group_id), mine, roster, slots, myReqs, status, gHints));
     else out.push(h('div', { class: 'gcard stack' }, h('h3', null, t('g.noGroup')), h('p', { class: 'muted' }, t('g.groupRules')),
       h('button', { class: 'btn primary big', type: 'button', onclick: (e) => run(e.currentTarget, async () => { await db(sb.rpc('create_group')); toast(t('g.groupCreated'), 'ok'); await load(); onChange(); }) }, t('g.createGroup'))));
     mount(page, ...out);
@@ -54,7 +55,7 @@ export async function render(box, ctx, onChange) {
         h('button', { class: 'btn grow', type: 'button', onclick: act(() => db(sb.rpc('decline_invite', { p_group: m.group_id }))) }, t('g.decline'))));
   }
 
-  function groupCard(g, mine, roster, slots, myReqs, status) {
+  function groupCard(g, mine, roster, slots, myReqs, status, gHints) {
     const amHead = g.creator_id === me.id;
     const [sk, sc] = STATE[g.status] || ['', ''];
     const confirmed = roster.filter((r) => r.status === 'confirmed').length;
@@ -90,7 +91,7 @@ export async function render(box, ctx, onChange) {
       }
       parts.push(inviteForm(g));
     }
-    parts.push(groupItems(g, myReqs, status));
+    parts.push(groupItems(g, myReqs, status, gHints));
     parts.push(h('div', { class: 'row' },
       amHead && roster.some((r) => !r.is_creator && ['joined', 'confirmed'].includes(r.status)) ? h('button', { class: 'btn', type: 'button', onclick: () => transferModal(g, roster) }, t('g.transfer')) : null,
       h('button', { class: 'btn danger', type: 'button', onclick: async (e) => {
@@ -118,14 +119,16 @@ export async function render(box, ctx, onChange) {
       } }, t('g.inviteBtn'))), hint);
   }
 
-  function groupItems(g, myReqs, status) {
+  function groupItems(g, myReqs, status, gHints) {
+    const hintOf = new Map((gHints || []).map((x) => [x.item_id, x]));
     const reqOf = new Map(myReqs.map((r) => [r.item_id, r]));
     const stOf = new Map(status.map((s) => [s.item_id, s]));
     const rows = G.items.map((it) => {
       const req = reqOf.get(it.id), st = stOf.get(it.id);
       if (!req && !(st && st.requestable)) return null;
       const size = mySize(it);
-      return h('div', { class: 'item-row' }, h('div', null, h('div', { class: 'name' }, pick(it)), h('div', { class: 'muted small' }, size ? `${t('g.size')} ${size}` : t('g.sizeNone'))),
+      return h('div', { class: 'item-row' }, h('div', null, h('div', { class: 'name' }, pick(it)), h('div', { class: 'muted small' }, size ? `${t('g.size')} ${size}` : t('g.sizeNone')),
+        hintOf.has(it.id) ? h('div', { style: 'margin-top:4px' }, hintOf.get(it.id).short_by > 0 ? chip(t('g.groupShort', { n: hintOf.get(it.id).short_by }), '') : chip(t('g.groupEnough'), 'ok')) : null),
         req ? h('button', { class: 'btn sm', type: 'button', onclick: act(() => db(sb.rpc('cancel_request', { p_id: req.id }))) }, t('g.removeFromGroup'))
           : size ? h('button', { class: 'btn primary sm', type: 'button', onclick: act(() => db(sb.rpc('create_request', { p_item: it.id, p_qty: it.norm_qty, p_group: g.id })), t('g.reqDone')) }, t('g.addToGroup'))
             : h('a', { class: 'btn sm', href: '#/sizes' }, t('g.setSize')));

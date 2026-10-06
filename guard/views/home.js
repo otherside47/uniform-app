@@ -10,11 +10,12 @@ export async function render(box, ctx, onChange) {
   mount(box, page);
 
   async function load() {
-    const [pend, open, status, signed] = await Promise.all([
+    const [pend, open, status, signed, hints] = await Promise.all([
       db(sb.from('issuances').select('*').eq('guard_id', me.id).eq('status', 'pending_signature').order('created_at')),
       db(sb.from('item_requests').select('*').eq('guard_id', me.id).eq('status', 'open').order('created_at')),
       db(sb.rpc('item_status')),
       db(sb.from('issuances').select('*').eq('guard_id', me.id).eq('status', 'signed').order('signed_at', { ascending: false }).limit(15)),
+      db(sb.rpc('stock_hint')).catch(() => []),
     ]);
     const ids = [...pend, ...signed].map((i) => i.id);
     const lines = ids.length ? await db(sb.from('issuance_lines').select('*').in('issuance_id', ids)) : [];
@@ -22,6 +23,7 @@ export async function render(box, ctx, onChange) {
     const linesOf = (id) => lines.filter((l) => l.issuance_id === id);
     const stOf = new Map(status.map((s) => [s.item_id, s]));
     const reqOf = new Map(open.map((r) => [r.item_id, r]));
+    const stockOf = new Map(hints.map((x) => [x.item_id, x.in_stock]));
 
     const itemRow = (it) => {
       const st = stOf.get(it.id) || {};
@@ -35,7 +37,7 @@ export async function render(box, ctx, onChange) {
           await run(e.currentTarget, async () => { await db(sb.rpc('cancel_request', { p_id: req.id })); toast(t('common.done'), 'ok'); await load(); onChange(); });
         } }, t('g.cancelReq'));
       } else if (st.requestable) {
-        state = st.last_issued ? chip(t('g.due'), 'ok') : chip(t('g.dueFirst'), 'ok');
+        state = [st.last_issued ? chip(t('g.due'), 'ok') : chip(t('g.dueFirst'), 'ok'), stockOf.has(it.id) && size ? [' ', stockOf.get(it.id) ? chip(t('g.inStock'), 'ok') : chip(t('g.noStock'), '')] : null];
         action = size
           ? h('button', { class: 'btn primary sm', type: 'button', onclick: async (e) => run(e.currentTarget, async () => {
             await db(sb.rpc('create_request', { p_item: it.id, p_qty: it.norm_qty, p_group: null }));

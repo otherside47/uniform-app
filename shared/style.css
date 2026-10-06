@@ -328,25 +328,32 @@ dialog.modal[open] { display: flex; flex-direction: column; }
 /* ---------- phone: tables turn into cards, dialogs into bottom sheets, bigger touch targets ---------- */
 @media (max-width: 719px) {
   .scroll { overflow: visible; }
-  .ledger, .ledger tbody, .ledger tr, .ledger td { display: block; width: 100%; }
-  .ledger thead { display: none; }
-  .ledger tr { margin-bottom: 10px; padding: 2px 14px; border: 1px solid var(--rule); border-radius: 10px; background: var(--paper); }
-  .ledger tr:last-child { margin-bottom: 0; }
-  .ledger td, .ledger td.r, .ledger td:last-child, .ledger td.r + td, .ledger td.r + td:last-child {
+  .scroll:has(> .ledger.keep) { overflow-x: auto; }
+  .ledger.keep th, .ledger.keep td { padding-right: 10px; font-size: 13px; }
+  .ledger.keep th { white-space: normal; font-size: 12px; vertical-align: bottom; }
+  .ledger.keep th:last-child, .ledger.keep td:last-child { padding-right: 0; }
+  .ledger.yr th:nth-child(3), .ledger.yr td:nth-child(3), .ledger.yr th:nth-child(4), .ledger.yr td:nth-child(4), .ledger.yr th:nth-child(6), .ledger.yr td:nth-child(6),
+  .ledger.gy th:nth-child(6), .ledger.gy td:nth-child(6) { display: none; }
+  .ledger:not(.keep), .ledger:not(.keep) tbody, .ledger:not(.keep) tr, .ledger:not(.keep) td { display: block; width: 100%; }
+  .ledger:not(.keep) thead { display: none; }
+  .ledger:not(.keep) tr { margin-bottom: 10px; padding: 2px 14px; border: 1px solid var(--rule); border-radius: 10px; background: var(--paper); }
+  .ledger:not(.keep) tr:last-child { margin-bottom: 0; }
+  .ledger:not(.keep) td, .ledger:not(.keep) td.r, .ledger:not(.keep) td:last-child, .ledger:not(.keep) td.r + td, .ledger:not(.keep) td.r + td:last-child {
     display: flex; justify-content: space-between; align-items: baseline; gap: 16px; text-align: right;
     padding: 10px 0; border-bottom: 1px solid var(--rule-soft);
   }
-  .ledger td:last-child { border-bottom: 0; }
-  .ledger td > .v { display: block; min-width: 0; overflow-wrap: anywhere; }
-  .ledger td[data-label]::before { content: attr(data-label); flex: 0 0 36%; text-align: left; color: var(--muted); font-size: 13px; font-weight: 400; font-family: var(--font); }
-  .ledger td:not([data-label]) { justify-content: flex-start; text-align: left; }
-  .ledger td:empty { display: none; }
-  .ledger td[colspan] { display: block; text-align: left; }
-  .ledger tr.total, .ledger tr.sub { background: none; }
-  .ledger tr.grp { display: none; }
+  .ledger:not(.keep) td:last-child { border-bottom: 0; }
+  .ledger:not(.keep) td > .v { display: block; min-width: 0; overflow-wrap: anywhere; }
+  .ledger:not(.keep) td[data-label]::before { content: attr(data-label); flex: 0 0 36%; text-align: left; color: var(--muted); font-size: 13px; font-weight: 400; font-family: var(--font); }
+  .ledger:not(.keep) td:not([data-label]) { justify-content: flex-start; text-align: left; }
+  .ledger:not(.keep) td:empty { display: none; }
+  .ledger:not(.keep) td[colspan] { display: block; text-align: left; }
+  .ledger:not(.keep) tr.total, .ledger:not(.keep) tr.sub { background: none; }
+  .ledger:not(.keep) tr.sub td { font-size: inherit; }
+  .ledger:not(.keep) tr.grp { display: none; }
   .ph-only { display: inline; font-weight: 600; }
-  .ledger tr.click:active { background: var(--primary-soft); }
-  .ledger tr.click { cursor: pointer; }
+  .ledger:not(.keep) tr.click:active { background: var(--primary-soft); }
+  .ledger:not(.keep) tr.click { cursor: pointer; }
 
   dialog.modal, dialog.modal.wide {
     width: 100vw; max-width: 100vw; margin: auto 0 0; max-height: 92vh; border-radius: 16px 16px 0 0; border-width: 1px 0 0;
@@ -369,3 +376,16 @@ dialog.modal[open] { display: flex; flex-direction: column; }
   .page-head > .row, .spread > .row { width: 100%; }
   .page-head > .row > .btn, .spread > .row > .btn { flex: 1 1 140px; }
 }
+
+/* ---------- item page: segmented switch and price chart ---------- */
+.seg { display: inline-flex; border: 1px solid var(--rule); border-radius: var(--radius); overflow: hidden; background: var(--card); }
+.seg button { border: 0; background: none; padding: 6px 12px; min-height: 36px; cursor: pointer; color: var(--muted); font-size: 13px; }
+.seg button + button { border-left: 1px solid var(--rule); }
+.seg button[aria-pressed="true"] { background: var(--primary); color: var(--primary-ink); }
+.chart-box { margin-top: 24px; max-width: 760px; }
+.chart { width: 100%; height: auto; display: block; }
+.chart .grid { stroke: var(--rule-soft); stroke-width: 1; }
+.chart .axis { fill: var(--muted); font-size: 11px; font-family: var(--font-num); }
+.chart .line { fill: none; stroke: var(--primary); stroke-width: 2; stroke-linejoin: round; }
+.chart .dot { fill: var(--card); stroke: var(--primary); stroke-width: 2; }
+@media (max-width: 719px) { .seg { width: 100%; } .seg button { flex: 1; } }

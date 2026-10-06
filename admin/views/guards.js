@@ -106,10 +106,12 @@ export async function renderDetail(box, { no }) {
         h('div', { class: 'head' }, h('h2', null, t('guards.received')), h('span', { class: 'muted small' }, t('guards.receivedHint'))),
         ledger.length ? tableOf([t('req.signedAt'), t('req.item'), t('req.size'), { label: t('req.qty'), r: true }, { label: t('stock.price'), r: true }, { label: t('guards.sum'), r: true }, t('req.source')],
           [...ledger.map((r) => h('tr', { class: r.in_fy ? '' : 'sub' },
-            h('td', { class: 'nowrap' }, fmtDateTime(r.signed_at)), h('td', null, itemName(r.item_id), S.itemById.get(r.item_id)?.in_budget === false ? [' ', chip(t('guards.outOfBudget'))] : null), h('td', null, r.size),
+            h('td', { class: 'nowrap' }, fmtDateTime(r.signed_at)), h('td', null, h('a', { href: `#/items/${r.item_id}` }, itemName(r.item_id)), S.itemById.get(r.item_id)?.in_budget === false ? [' ', chip(t('guards.outOfBudget'))] : null), h('td', null, r.size),
             h('td', { class: 'r num' }, `×${r.qty}`), h('td', { class: 'r num' }, money(r.unit_price)), h('td', { class: 'r num' }, money(r.line_total)),
             h('td', null, sourceChip(r.source)))),
           h('tr', { class: 'total' }, h('td', { colspan: 5 }, t('guards.fyTotal')), h('td', { class: 'r num' }, money(me.spent)), h('td'))]) : empty(t('guards.nothingReceived'))),
+      // statistics by fiscal year and by item
+      ledger.length ? statsSection(ledger) : null,
       // sizes
       h('section', { class: 'section' },
         h('div', { class: 'head' }, h('h2', null, t('guards.sizes'))),
@@ -202,4 +204,35 @@ async function manualIssuance(p, reload) {
       } },
     ],
   });
+}
+
+/* ---------- guard statistics (from the signed-issuance ledger) ---------- */
+function statsSection(ledger) {
+  const fyOf = (v) => { const d = fmtDay(v); const y = Number(d.slice(6, 10)); return Number(d.slice(3, 5)) >= 9 ? y : y - 1; };
+  const lim = limitUsd();
+  const years = [...new Set(ledger.map((r) => fyOf(r.signed_at)))].sort((a, b) => b - a);
+  const yearRows = years.map((y) => {
+    const rows = ledger.filter((r) => fyOf(r.signed_at) === y);
+    const budget = rows.filter((r) => S.itemById.get(r.item_id)?.in_budget !== false);
+    const spent = budget.reduce((s, r) => s + Number(r.line_total), 0);
+    const p = lim ? (spent / lim) * 100 : 0;
+    const urgent = rows.filter((r) => r.source === 'urgent').reduce((s, r) => s + r.qty, 0);
+    const equip = rows.length - budget.length ? rows.filter((r) => S.itemById.get(r.item_id)?.in_budget === false).reduce((s, r) => s + r.qty, 0) : 0;
+    return h('tr', null, h('td', null, `${y}–${String(y + 1).slice(2)}`), h('td', { class: 'r num' }, int(rows.reduce((s, r) => s + r.qty, 0))),
+      h('td', { class: 'r num' }, money(spent)), h('td', { class: 'r num' }, h('span', { class: `t-${p >= 95 ? 'red' : p >= 80 ? 'rust' : 'green'}` }, pct(p))),
+      h('td', { class: 'r num' }, urgent ? h('b', { class: 't-rust' }, int(urgent)) : '0'), h('td', { class: 'r num' }, int(equip)));
+  });
+  const byItem = new Map();
+  for (const r of ledger) {
+    const e = byItem.get(r.item_id) || { qty: 0, times: 0, last: r.signed_at };
+    e.qty += r.qty; e.times += 1; if (r.signed_at > e.last) e.last = r.signed_at;
+    byItem.set(r.item_id, e);
+  }
+  const itemRows = [...byItem.entries()].sort((a, b) => (a[1].last < b[1].last ? 1 : -1)).map(([id, e]) => h('tr', null,
+    h('td', null, h('a', { href: `#/items/${id}` }, itemName(id))), h('td', { class: 'r num' }, int(e.qty)), h('td', { class: 'r num' }, int(e.times)), h('td', { class: 'nowrap' }, fmtDay(e.last))));
+  return h('section', { class: 'section' },
+    h('div', { class: 'head' }, h('h2', null, t('gstat.title')), h('span', { class: 'muted small' }, t('gstat.hint'))),
+    tableOf([t('gstat.fy'), { label: t('gstat.pieces'), r: true }, { label: t('gstat.spent'), r: true }, { label: t('gstat.pct'), r: true }, { label: t('gstat.urgent'), r: true }, { label: t('gstat.equip'), r: true }], yearRows, { cls: 'keep gy' }),
+    h('h3', { style: 'margin:20px 0 8px' }, t('gstat.byItem')),
+    tableOf([t('req.item'), { label: t('gstat.pieces'), r: true }, { label: t('gstat.times'), r: true }, t('gstat.last')], itemRows, { cls: 'keep' }));
 }

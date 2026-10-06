@@ -40,12 +40,13 @@ export async function render(box) {
 function itemsTab(body, reload) {
   mount(body, h('section', { class: 'section' },
     h('div', { class: 'head' }, h('h2', null, t('catalog.items')), h('button', { class: 'btn primary', type: 'button', onclick: () => itemModal(null, reload) }, t('catalog.addItem'))),
-    S.items.length ? tableOf([t('catalog.sku'), t('req.item'), t('catalog.season'), t('catalog.sizeType'), { label: t('catalog.wear'), r: true }, { label: t('catalog.norm'), r: true }, t('catalog.budget')],
-      S.items.map((i) => h('tr', { class: 'click', tabindex: 0, onclick: () => itemModal(i, reload), onkeydown: (e) => { if (e.key === 'Enter') itemModal(i, reload); } },
+    S.items.length ? tableOf([t('catalog.sku'), t('req.item'), t('catalog.season'), t('catalog.sizeType'), { label: t('catalog.wear'), r: true }, { label: t('catalog.norm'), r: true }, t('catalog.budget'), ''],
+      S.items.map((i) => h('tr', { class: 'click', tabindex: 0, onclick: () => { location.hash = `#/items/${i.id}`; }, onkeydown: (e) => { if (e.key === 'Enter') location.hash = `#/items/${i.id}`; } },
         h('td', { class: 'muted small' }, i.sku || ''), h('td', null, pick(i), i.active ? null : [' ', chip(t('common.inactive'))]),
-        h('td', null, seasonName(i.season)), h('td', null, typeName(i.size_type)), h('td', { class: 'r num' }, wearText(i.wear_months)), h('td', { class: 'r num' }, i.norm_qty), h('td', null, i.in_budget ? chip(t('catalog.yes'), 'ok') : chip(t('catalog.no'), ''))))) : empty(t('catalog.noItems'))));
+        h('td', null, seasonName(i.season)), h('td', null, typeName(i.size_type)), h('td', { class: 'r num' }, wearText(i.wear_months)), h('td', { class: 'r num' }, i.norm_qty), h('td', null, i.in_budget ? chip(t('catalog.yes'), 'ok') : chip(t('catalog.no'), '')),
+        h('td', { class: 'r' }, h('button', { class: 'btn ghost sm', type: 'button', onclick: (e) => { e.stopPropagation(); itemModal(i, reload); } }, t('common.edit')))))) : empty(t('catalog.noItems'))));
 }
-function itemModal(it, reload) {
+export function itemModal(it, reload) {
   const n = names3(it || {});
   const sku = text(it?.sku || '');
   const season = h('select', null, ['summer', 'winter', 'all_year'].map((s) => h('option', { value: s }, seasonName(s))));

@@ -24,7 +24,7 @@ export async function render(box) {
       const rows = (byItem.get(it.id) || []).filter((r) => r.on_hand > 0 || r.reserved > 0).sort((a, b) => String(a.size).localeCompare(String(b.size), undefined, { numeric: true }));
       if (!rows.length) continue;
       for (const r of rows) {
-        itemRows.push(h('tr', null, h('td', null, itemName(it.id), it.active ? null : [' ', chip(t('common.inactive'))]), h('td', null, r.size), h('td', { class: 'r num' }, int(r.on_hand)),
+        itemRows.push(h('tr', null, h('td', null, h('a', { href: `#/items/${it.id}` }, itemName(it.id)), it.active ? null : [' ', chip(t('common.inactive'))]), h('td', null, r.size), h('td', { class: 'r num' }, int(r.on_hand)),
           h('td', { class: 'r num' }, r.reserved ? int(r.reserved) : '—'),
           h('td', { class: 'r num' }, h('b', null, int(r.available)))));
       }

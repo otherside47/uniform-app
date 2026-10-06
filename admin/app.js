@@ -12,6 +12,7 @@ import * as sizes from './views/sizes.js';
 import * as reviews from './views/reviews.js';
 import * as catalog from './views/catalog.js';
 import * as accounts from './views/accounts.js';
+import * as itemView from './views/item.js';
 
 const NAV = [
   ['requests', 'nav.requests'], ['guards', 'nav.guards'], ['stock', 'nav.stock'], ['planning', 'nav.planning'],
@@ -47,14 +48,16 @@ async function render(ctx) {
   async function route() {
     if (cleanup) { try { cleanup(); } catch { /* ignore */ } cleanup = null; }
     const parts = (location.hash.replace(/^#\/?/, '') || 'requests').split('/');
-    const id = NAV.some(([n]) => n === parts[0]) ? parts[0] : 'requests';
+    const isItem = parts[0] === 'items' && parts[1];
+    const id = isItem ? 'catalog' : (NAV.some(([n]) => n === parts[0]) ? parts[0] : 'requests');
     drawNav(id, pendingN);
     refreshBadge(id);
     mount(main, loading());
     const box = h('div');
     try {
       let out;
-      if (id === 'guards' && parts[1]) out = await guards.renderDetail(box, { no: Number(parts[1]) });
+      if (isItem) out = await itemView.renderDetail(box, { id: parts[1] });
+      else if (id === 'guards' && parts[1]) out = await guards.renderDetail(box, { no: Number(parts[1]) });
       else if (id === 'guards') out = await guards.renderList(box);
       else if (id === 'accounts') out = await accounts.render(box, { me: ctx.profile });
       else out = await ({ requests, stock, planning, groups, sizes, reviews, catalog })[id].render(box);

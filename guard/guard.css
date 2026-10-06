@@ -28,3 +28,12 @@
 @media (min-width: 700px) { .tabbar { max-width: 640px; left: 50%; transform: translateX(-50%); border: 1px solid var(--rule); border-bottom: 0; border-radius: 10px 10px 0 0; } }
 
 .gcard.sign .btn { margin-top: 12px; }
+
+/* size picker: green = in stock, grey = not */
+.item-row .name.linkish { background: none; border: 0; padding: 0; font: inherit; font-weight: 600; text-align: left; color: var(--ink); text-decoration: underline dotted; text-underline-offset: 3px; cursor: pointer; }
+.size-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.size-grid .sz { min-width: 48px; padding: 10px 12px; border-radius: 10px; text-align: center; font-weight: 600; border: 2px solid transparent; font-variant-numeric: tabular-nums; }
+.size-grid .sz.have { background: #c9ef8f; color: #2c4a07; }
+.size-grid .sz.none { background: var(--rule-soft); color: var(--muted); }
+.size-grid .sz.mine { border-color: var(--ink); }
+.size-grid + p + a.btn { text-decoration: none; }

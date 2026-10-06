@@ -1,6 +1,7 @@
 import { sb } from '../../shared/auth.js';
 import { h, mount, loading, empty, chip, toast, run, openModal, confirmBox, fmtDay, fmtDateTime } from '../../shared/ui.js';
 import { t, pick } from '../../shared/i18n.js';
+import { hasSizes, openSizes } from './sizepick.js';
 import { G, db, itemName, linesText, mySize, seasonName } from '../data.js';
 
 export async function render(box, ctx, onChange) {
@@ -48,7 +49,7 @@ export async function render(box, ctx, onChange) {
         state = chip(st.due_on ? t('g.notBefore', { date: fmtDay(st.due_on) }) : t('g.notDue'), '');
       }
       return h('div', { class: 'item-row' },
-        h('div', null, h('div', { class: 'name' }, pick(it)),
+        h('div', null, hasSizes(it) ? h('button', { class: 'name linkish', type: 'button', onclick: () => openSizes(it) }, pick(it)) : h('div', { class: 'name' }, pick(it)),
           h('div', { class: 'muted small' }, `${seasonName(it.season)} · ${size === 'ONE' ? t('g.oneSize') : size ? `${t('g.size')} ${size}` : t('g.sizeNone')}`, st.last_issued ? ` · ${t('g.last', { date: fmtDay(st.last_issued) })}` : ''),
           h('div', { style: 'margin-top:4px' }, state)),
         action);

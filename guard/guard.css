@@ -37,3 +37,4 @@
 .size-grid .sz.none { background: var(--rule-soft); color: var(--muted); }
 .size-grid .sz.mine { border-color: var(--ink); }
 .size-grid + p + a.btn { text-decoration: none; }
+.gcard.new { border-color: var(--green); box-shadow: 0 0 0 1px var(--green) inset; }

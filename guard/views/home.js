@@ -11,13 +11,17 @@ export async function render(box, ctx, onChange) {
   mount(box, page);
 
   async function load() {
-    const [pend, open, status, signed, hints] = await Promise.all([
+    const since = new Date(Date.now() - 14 * 864e5).toISOString();
+    const [pend, open, status, signed, hints, notices, seen] = await Promise.all([
       db(sb.from('issuances').select('*').eq('guard_id', me.id).eq('status', 'pending_signature').order('created_at')),
       db(sb.from('item_requests').select('*').eq('guard_id', me.id).eq('status', 'open').order('created_at')),
       db(sb.rpc('item_status')),
       db(sb.from('issuances').select('*').eq('guard_id', me.id).eq('status', 'signed').order('signed_at', { ascending: false }).limit(15)),
       db(sb.rpc('stock_hint')).catch(() => []),
+      db(sb.from('announcements').select('*').gte('created_at', since).order('created_at', { ascending: false }).limit(10)).catch(() => []),
+      db(sb.from('announcement_seen').select('seen_at').eq('guard_id', me.id)).catch(() => []),
     ]);
+    const seenAt = seen[0]?.seen_at || '';
     const ids = [...pend, ...signed].map((i) => i.id);
     const lines = ids.length ? await db(sb.from('issuance_lines').select('*').in('issuance_id', ids)) : [];
     if (!alive) return;
@@ -58,11 +62,23 @@ export async function render(box, ctx, onChange) {
     mount(page,
       h('div', null, h('h1', null, t('g.hello', { no: me.guard_no })), h('p', { class: 'muted small' }, t('g.homeSub'))),
       pend.length ? h('section', { class: 'stack' }, pend.map((i) => signCard(i, linesOf(i.id), load, onChange))) : null,
+      notices.length ? noticeCard(notices, seenAt) : null,
       h('section', null, h('h2', { style: 'margin-bottom:8px' }, t('g.myItems')),
         h('div', { class: 'gcard' }, G.items.length ? G.items.map(itemRow) : empty(t('g.noItems')))),
       h('section', null, h('h2', { style: 'margin-bottom:8px' }, t('g.received')),
         signed.length ? h('div', { class: 'gcard' }, signed.map((i) => h('div', { class: 'item-row' },
           h('div', null, linesText(linesOf(i.id))), h('div', { class: 'muted small' }, fmtDay(i.signed_at))))) : h('div', { class: 'gcard' }, empty(t('g.noneReceived')))));
+  }
+
+  function noticeCard(list, seenAt) {
+    const unread = list.some((n) => n.created_at > seenAt);
+    const names = (n) => n.item_ids.map((id) => G.itemById.get(id)).filter(Boolean).map((it) => pick(it)).join(', ');
+    return h('section', { class: `gcard${unread ? ' new' : ''}` },
+      h('h2', { style: 'margin-bottom:4px' }, t('g.newStock')),
+      list.map((n) => h('div', { class: 'item-row' },
+        h('div', null, h('div', { class: n.created_at > seenAt ? 'name' : 'muted' }, names(n)), n.note ? h('div', { class: 'muted small' }, n.note) : null),
+        h('div', { class: 'muted small' }, fmtDay(n.created_at)))),
+      unread ? h('button', { class: 'btn primary', type: 'button', style: 'margin-top:12px', onclick: (e) => run(e.currentTarget, async () => { await db(sb.rpc('mark_announcements_seen')); await load(); onChange(); }) }, t('g.gotIt')) : null);
   }
 
   function signCard(i, lines, reload, changed) {

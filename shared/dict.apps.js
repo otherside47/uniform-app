@@ -30,6 +30,8 @@ export const APPS = {
   'g.noStockShort': ['Нет в наличии', 'Out of stock', 'Ammarda ýok'],
   'g.sizeLegend': ['Зелёные размеры есть на складе, серых нет. Ваш размер выделен рамкой.', 'Green sizes are in stock, grey are not. Your size has an outline.', 'Ýaşyl ölçegler ammarda bar, çal ölçegler ýok. Siziň ölçegiňiz çerçewe bilen bellenen.'],
   'g.changeSize': ['Изменить мой размер', 'Change my size', 'Ölçegimi üýtgetmek'],
+  'g.newStock': ['Поступили на склад', 'New at the warehouse', 'Ammara gelenler'],
+  'g.gotIt': ['Понятно', 'Got it', 'Düşündim'],
   'g.reqDone': ['Заявка отправлена', 'Request sent', 'Haýyş iberildi'],
   'g.cancelReq': ['Отменить', 'Cancel', 'Ýatyr'],
   'g.cancelReqAsk': ['Отменить заявку?', 'Cancel this request?', 'Haýyşy ýatyrmalymy?'],

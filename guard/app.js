@@ -27,7 +27,12 @@ async function render(ctx) {
     try {
       const a = await sb.from('issuances').select('id', { count: 'exact', head: true }).eq('guard_id', ctx.profile.id).eq('status', 'pending_signature');
       const b = await sb.from('group_members').select('group_id', { count: 'exact', head: true }).eq('guard_id', ctx.profile.id).eq('status', 'invited');
-      badges.home = a.count || 0; badges.group = b.count || 0;
+      const sn = await sb.from('announcement_seen').select('seen_at').eq('guard_id', ctx.profile.id);
+      const seenAt = sn.data?.[0]?.seen_at;
+      let q = sb.from('announcements').select('id', { count: 'exact', head: true }).gte('created_at', new Date(Date.now() - 14 * 864e5).toISOString());
+      if (seenAt) q = q.gt('created_at', seenAt);
+      const c = await q;
+      badges.home = (a.count || 0) + (c.count || 0); badges.group = b.count || 0;
     } catch { /* badges are optional */ }
     drawBar(cur);
   }

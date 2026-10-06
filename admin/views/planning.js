@@ -78,7 +78,8 @@ export async function render(box) {
     const linesBox = h('tbody');
     const lines = [];
     const recalc = () => {
-      total.textContent = money(lines.reduce((s, l) => s + (l.item.value && !inBudget(l.item.value) ? 0 : (Number(l.qty.value) || 0) * (Number(l.price.value) || 0)), 0));
+      const sum = (only) => lines.reduce((s, l) => s + (only && l.item.value && !inBudget(l.item.value) ? 0 : (Number(l.qty.value) || 0) * (Number(l.price.value) || 0)), 0);
+      total.textContent = money(sum(false)) + (sum(true) !== sum(false) ? ` (${t('plan.inBudgetPart')}: ${money(sum(true))})` : '');
     };
     function addLine() {
       const l = { item: itemSelect('', { blank: true }), sizeCell: h('td'), qty: h('input', { type: 'number', min: 1, step: 1, style: 'width:80px', oninput: recalc }), price: h('input', { type: 'number', min: 0, step: '0.01', style: 'width:90px', oninput: recalc }), size: null };
@@ -111,9 +112,8 @@ export async function render(box) {
           if (!l.item.value && !l.qty.value) continue;
           if (!l.item.value || !l.size.value) throw new Error('size is required on every line');
           const q = Number(l.qty.value), p = Number(l.price.value);
-          const free = !inBudget(l.item.value);
-          if (!Number.isInteger(q) || q < 1 || (l.price.value === '' && !free) || !(p >= 0 || free)) throw new Error('bad quantity');
-          payload.push({ item_id: l.item.value, size: l.size.value, qty: q, unit_price: free ? 0 : p });
+          if (!Number.isInteger(q) || q < 1 || l.price.value === '' || !(p >= 0)) throw new Error('bad quantity');
+          payload.push({ item_id: l.item.value, size: l.size.value, qty: q, unit_price: p });
         }
         if (!payload.length) throw new Error(t('plan.noLines'));
         await db(sb.rpc('create_order', { p_shipping: shipping.value, p_lines: payload, p_basis_id: basis.value || null, p_basis_comment: basisNote.value.trim() || null, p_ref: ref.value.trim() || null, p_notes: notes.value.trim() || null, p_ordered_on: ordered.value, p_expected: expected.value }));
@@ -148,7 +148,7 @@ export async function render(box) {
         h('td', null, itemName(l.item_id)), h('td', null, l.size), h('td', { class: 'r num' }, int(l.ordered), l.ordered !== l.original_qty ? h('div', { class: 'muted small' }, t('plan.was', { n: l.original_qty })) : null),
         h('td', { class: 'r num' }, int(l.received), l.bonus ? h('div', { class: 'small t-green' }, `+${int(l.bonus)} ${t('plan.bonus')}`) : null),
         h('td', { class: 'r num' }, rem, l.closed_note ? h('div', { class: 'muted small' }, l.closed_note) : null),
-        h('td', { class: 'r num' }, inBudget(l.item_id) ? money(l.unit_price) : '—'),
+        h('td', { class: 'r num' }, money(l.unit_price)),
         h('td', null, inp),
         h('td', { class: 'nowrap' }, open ? [
           h('button', { class: 'btn ghost sm', type: 'button', onclick: () => changeQty(l) }, t('plan.change')), ' ',

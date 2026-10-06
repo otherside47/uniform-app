@@ -50,7 +50,7 @@ async function ledgerView(box, no) {
     h('section', { class: 'section' }, h('div', { class: 'head' }, h('h2', null, t('guards.received'))),
       rows.length ? tableOf([t('gso.date'), t('req.item'), t('req.size'), { label: t('req.qty'), r: true }, { label: t('stock.price'), r: true }, { label: t('guards.sum'), r: true }, t('req.source')],
         rows.map((r) => h('tr', null, h('td', { class: 'nowrap' }, fmtDay(r.signed_at)), h('td', null, itemName(r.item_id), items.get(r.item_id)?.in_budget === false ? [' ', chip(t('guards.outOfBudget'))] : null), h('td', null, r.size), h('td', { class: 'r num' }, r.qty),
-          h('td', { class: 'r num' }, items.get(r.item_id)?.in_budget === false ? '—' : money(r.unit_price)), h('td', { class: 'r num' }, items.get(r.item_id)?.in_budget === false ? '—' : money(r.line_total)), h('td', null, chip(t(`src.${r.source}`), r.source === 'urgent' ? 'bad' : ''), r.in_fy ? null : [' ', chip(t('gso.prevFy'), '')])))) : empty(t('guards.nothingReceived'))));
+          h('td', { class: 'r num' }, money(r.unit_price)), h('td', { class: 'r num' }, money(r.line_total)), h('td', null, chip(t(`src.${r.source}`), r.source === 'urgent' ? 'bad' : ''), r.in_fy ? null : [' ', chip(t('gso.prevFy'), '')])))) : empty(t('guards.nothingReceived'))));
 }
 
 /* ---------- orders ---------- */
@@ -74,7 +74,7 @@ async function orderDetail(o) {
         prog.map((l) => h('tr', null, h('td', null, itemName(l.item_id)), h('td', null, l.size), h('td', { class: 'r num' }, int(l.ordered)),
           h('td', { class: 'r num' }, int(l.received), l.bonus ? h('div', { class: 'small t-green' }, `+${int(l.bonus)} ${t('plan.bonus')}`) : null),
           h('td', { class: 'r num' }, l.closed_at ? chip(t('plan.closed'), '') : (l.remaining > 0 ? int(l.remaining) : '—'), l.closed_note ? h('div', { class: 'muted small' }, l.closed_note) : null),
-          h('td', { class: 'r num' }, items.get(l.item_id)?.in_budget === false ? '—' : money(l.unit_price)))))),
+          h('td', { class: 'r num' }, money(l.unit_price)))))),
     actions: [{ label: t('common.close'), kind: 'primary' }] });
 }
 

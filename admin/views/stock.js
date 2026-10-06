@@ -44,7 +44,7 @@ export async function render(box) {
           h('label', { class: 'inline-check small' }, h('input', { type: 'checkbox', checked: showBatches, onchange: (e) => { showBatches = e.target.checked; load(); } }), t('stock.showBatches'))),
         showBatches ? (batches.length ? tableOf([t('stock.received'), t('req.item'), t('req.size'), { label: t('stock.left'), r: true }, { label: t('stock.price'), r: true }, t('stock.basis')],
           batches.map((b) => h('tr', null, h('td', { class: 'nowrap' }, fmtDay(b.received_on)), h('td', null, itemName(b.item_id)), h('td', null, b.size),
-            h('td', { class: 'r num' }, `${int(b.qty_remaining)} / ${int(b.qty_received)}`), h('td', { class: 'r num' }, inBudget(b.item_id) ? money(b.unit_price) : '—'),
+            h('td', { class: 'r num' }, `${int(b.qty_remaining)} / ${int(b.qty_received)}`), h('td', { class: 'r num' }, money(b.unit_price)),
             h('td', { class: 'small muted' }, b.order_id ? t('stock.fromOrder') : (b.basis || ''))))) : empty(t('stock.none'))) : null));
   }
 
@@ -70,9 +70,9 @@ export async function render(box) {
           h('label', { class: 'field' }, h('span', null, t('stock.price')), price),
           h('label', { class: 'field' }, h('span', null, t('stock.received')), date))),
       actions: [{ label: t('common.cancel') }, { label: t('common.save'), kind: 'primary', onClick: async () => {
-        const q = Number(qty.value), free = !inBudget(item.value), p = free && price.value === '' ? 0 : Number(price.value);
+        const q = Number(qty.value), p = Number(price.value);
         if (!item.value || !size.value) throw new Error('size is required on every line');
-        if (!Number.isInteger(q) || q < 1 || !(p >= 0) || (price.value === '' && !free)) throw new Error(t('err.unknown'));
+        if (!Number.isInteger(q) || q < 1 || !(p >= 0) || price.value === '') throw new Error(t('err.unknown'));
         const { data: { user } } = await sb.auth.getUser();
         await db(sb.from('stock_batches').insert({ item_id: item.value, size: size.value, qty_received: q, qty_remaining: q, unit_price: p, received_on: date.value || todayYmd(), basis: 'opening balance', created_by: user.id }));
         toast(t('common.saved'), 'ok'); await reload();

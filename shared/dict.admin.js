@@ -269,7 +269,7 @@ export const ADMIN = {
   'catalog.yes': ['да', 'yes', 'hawa'],
   'catalog.no': ['нет', 'no', 'ýok'],
   'catalog.inBudget': ['Входит в бюджет охранника', 'Counts toward the guard budget', 'Garawulyň býujetine girýär'],
-  'catalog.inBudgetHint': ['Одежда и обувь входят, снаряжение (чехлы, ремень, жетон и т. д.) нет: его стоимость нигде не считается и не показывается. Остатки на складе видны в любом случае.', 'Clothing and footwear count, equipment (holders, duty belt, badge, etc.) does not: its cost is not counted or shown anywhere. Stock is shown either way.', 'Egin-eşik we aýakgap girýär, enjam (gaplar, guşak, nyşan we ş.m.) girmeýär: onuň bahasy hiç ýerde hasaplanmaýar we görkezilmeýär. Ammardaky galyndy ýene-de görünýär.'],
+  'catalog.inBudgetHint': ['Одежда и обувь входят, снаряжение (чехлы, ремень, жетон и т. д.) нет: цены на него вводятся и видны (для сравнения закупок), но в бюджет и итоги не входят. Остатки на складе видны в любом случае.', 'Clothing and footwear count, equipment (holders, duty belt, badge, etc.) does not: its prices are recorded and shown (to compare purchases) but excluded from budgets and totals. Stock is shown either way.', 'Egin-eşik we aýakgap girýär, enjam (gaplar, guşak, nyşan we ş.m.) girmeýär: onuň bahalary ýazylýar we görkezilýär (satyn almalary deňeşdirmek üçin), emma býujete we jemlere girmeýär. Ammardaky galyndy ýene-de görünýär.'],
   'guards.outOfBudget': ['вне бюджета', 'not in budget', 'býujete girmeýär'],
   'plan.inBudgetPart': ['из них в бюджете', 'of which in budget', 'şondan býujetde'],
   'catalog.once': ['один раз', 'once', 'bir gezek'],

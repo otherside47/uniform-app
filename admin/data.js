@@ -36,8 +36,18 @@ export async function loadRefs() {
   S.guardByNo = new Map(S.guards.map((g) => [g.guard_no, g]));
   S.settings = Object.fromEntries(settings.map((x) => [x.key, x.value]));
   S.bases = bases; S.baseById = new Map(bases.map((x) => [x.id, x]));
-  S.seasons = seasons;
+  S.seasons = seasons.map(rollSeason);
   S.loaded = true;
+}
+
+// Seasons repeat every year: once a window is over, move it forward by whole years.
+function rollSeason(s) {
+  const d = new Date();
+  const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const shift = (ymd, n) => `${Number(ymd.slice(0, 4)) + n}${ymd.slice(4)}`;
+  let from = s.issue_from, until = s.issue_until, n = 0;
+  while (until < today && n++ < 50) { from = shift(from, 1); until = shift(until, 1); }
+  return { ...s, issue_from: from, issue_until: until };
 }
 
 export const num = (k, d = 0) => (S.settings[k] !== undefined ? Number(S.settings[k]) : d);

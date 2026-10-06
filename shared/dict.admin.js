@@ -331,7 +331,7 @@ export const ADMIN = {
   'catalog.order': ['Порядок', 'Order', 'Tertip'],
   'catalog.issueFrom': ['Выдача с', 'Issue from', 'Bermek başlanýar'],
   'catalog.issueUntil': ['Выдача до', 'Issue until', 'Bermek gutarýar'],
-  'catalog.seasonsHint': ['От этих дат считаются предупреждения о заказе', 'Order warnings are counted back from these dates', 'Sargyt duýduryşlary şu seneden hasaplanýar'],
+  'catalog.seasonsHint': ['От этих дат считаются предупреждения о заказе. Даты повторяются каждый год сами', 'Order warnings are counted back from these dates. Dates repeat every year automatically', 'Sargyt duýduryşlary şu seneden hasaplanýar. Seneler her ýyl özi gaýtalanýar'],
   'catalog.badDates': ['Дата «до» раньше даты «с»', 'The end date is before the start date', 'Gutarýan sene başlanýan seneden öň'],
   'catalog.fillAll': ['Заполните все поля', 'Fill in all fields', 'Ähli meýdanlary dolduryň'],
   'catalog.badThresholds': ['Пороги должны идти по возрастанию и не быть выше 100', 'Thresholds must increase and stay at or below 100', 'Çäkler ýokarlanmaly we 100-den geçmeli däl'],

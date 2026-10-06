@@ -269,7 +269,7 @@ export const ADMIN = {
   'catalog.yes': ['да', 'yes', 'hawa'],
   'catalog.no': ['нет', 'no', 'ýok'],
   'catalog.inBudget': ['Входит в бюджет охранника', 'Counts toward the guard budget', 'Garawulyň býujetine girýär'],
-  'catalog.inBudgetHint': ['Одежда и обувь входят, снаряжение (чехлы, ремень, жетон и т. д.) нет. Остатки на складе видны в любом случае.', 'Clothing and footwear count, equipment (holders, duty belt, badge, etc.) does not. Stock is shown either way.', 'Egin-eşik we aýakgap girýär, enjam (gaplar, guşak, nyşan we ş.m.) girmeýär. Ammardaky galyndy ýene-de görünýär.'],
+  'catalog.inBudgetHint': ['Одежда и обувь входят, снаряжение (чехлы, ремень, жетон и т. д.) нет: его стоимость нигде не считается и не показывается. Остатки на складе видны в любом случае.', 'Clothing and footwear count, equipment (holders, duty belt, badge, etc.) does not: its cost is not counted or shown anywhere. Stock is shown either way.', 'Egin-eşik we aýakgap girýär, enjam (gaplar, guşak, nyşan we ş.m.) girmeýär: onuň bahasy hiç ýerde hasaplanmaýar we görkezilmeýär. Ammardaky galyndy ýene-de görünýär.'],
   'guards.outOfBudget': ['вне бюджета', 'not in budget', 'býujete girmeýär'],
   'plan.inBudgetPart': ['из них в бюджете', 'of which in budget', 'şondan býujetde'],
   'catalog.once': ['один раз', 'once', 'bir gezek'],

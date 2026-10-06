@@ -1,7 +1,7 @@
 import { sb } from '../../shared/auth.js';
 import { h, mount, loading, empty, chip, toast, run, openModal, confirmBox, askNote, bar, money, pct, int, fmtDay, todayYmd, addDays, daysBetween, tabs } from '../../shared/ui.js';
 import { t, pick } from '../../shared/i18n.js';
-import { S, db, itemName, thresholds, landDays, airDays, seasonName } from '../data.js';
+import { S, inBudget, db, itemName, thresholds, landDays, airDays, seasonName } from '../data.js';
 import { tableOf, sizeSelect, itemSelect, statusChip, seasonBanners } from '../common.js';
 
 const fyStartOf = (ymd) => { const [y, m] = ymd.split('-').map(Number); return `${m >= 9 ? y : y - 1}-09-01`; };
@@ -78,8 +78,7 @@ export async function render(box) {
     const linesBox = h('tbody');
     const lines = [];
     const recalc = () => {
-      const sum = (only) => lines.reduce((s, l) => s + (only && S.itemById.get(l.item.value)?.in_budget === false ? 0 : (Number(l.qty.value) || 0) * (Number(l.price.value) || 0)), 0);
-      total.textContent = money(sum(false)) + (sum(true) !== sum(false) ? ` (${t('plan.inBudgetPart')}: ${money(sum(true))})` : '');
+      total.textContent = money(lines.reduce((s, l) => s + (l.item.value && !inBudget(l.item.value) ? 0 : (Number(l.qty.value) || 0) * (Number(l.price.value) || 0)), 0));
     };
     function addLine() {
       const l = { item: itemSelect('', { blank: true }), sizeCell: h('td'), qty: h('input', { type: 'number', min: 1, step: 1, style: 'width:80px', oninput: recalc }), price: h('input', { type: 'number', min: 0, step: '0.01', style: 'width:90px', oninput: recalc }), size: null };
@@ -112,8 +111,9 @@ export async function render(box) {
           if (!l.item.value && !l.qty.value) continue;
           if (!l.item.value || !l.size.value) throw new Error('size is required on every line');
           const q = Number(l.qty.value), p = Number(l.price.value);
-          if (!Number.isInteger(q) || q < 1 || l.price.value === '' || !(p >= 0)) throw new Error('bad quantity');
-          payload.push({ item_id: l.item.value, size: l.size.value, qty: q, unit_price: p });
+          const free = !inBudget(l.item.value);
+          if (!Number.isInteger(q) || q < 1 || (l.price.value === '' && !free) || !(p >= 0 || free)) throw new Error('bad quantity');
+          payload.push({ item_id: l.item.value, size: l.size.value, qty: q, unit_price: free ? 0 : p });
         }
         if (!payload.length) throw new Error(t('plan.noLines'));
         await db(sb.rpc('create_order', { p_shipping: shipping.value, p_lines: payload, p_basis_id: basis.value || null, p_basis_comment: basisNote.value.trim() || null, p_ref: ref.value.trim() || null, p_notes: notes.value.trim() || null, p_ordered_on: ordered.value, p_expected: expected.value }));
@@ -137,7 +137,7 @@ export async function render(box) {
     const inputs = new Map();
     const date = h('input', { type: 'date', value: todayYmd() });
     const rnotes = h('input', { type: 'text', placeholder: t('plan.deliveryNote') });
-    const sumRemaining = prog.reduce((s, l) => s + (l.closed_at ? 0 : l.remaining) * Number(l.unit_price), 0);
+    const sumRemaining = prog.reduce((s, l) => s + (l.closed_at || !inBudget(l.item_id) ? 0 : l.remaining) * Number(l.unit_price), 0);
 
     const lineRows = prog.map((l) => {
       const open = !l.closed_at && active;
@@ -148,7 +148,7 @@ export async function render(box) {
         h('td', null, itemName(l.item_id)), h('td', null, l.size), h('td', { class: 'r num' }, int(l.ordered), l.ordered !== l.original_qty ? h('div', { class: 'muted small' }, t('plan.was', { n: l.original_qty })) : null),
         h('td', { class: 'r num' }, int(l.received), l.bonus ? h('div', { class: 'small t-green' }, `+${int(l.bonus)} ${t('plan.bonus')}`) : null),
         h('td', { class: 'r num' }, rem, l.closed_note ? h('div', { class: 'muted small' }, l.closed_note) : null),
-        h('td', { class: 'r num' }, money(l.unit_price)),
+        h('td', { class: 'r num' }, inBudget(l.item_id) ? money(l.unit_price) : '—'),
         h('td', null, inp),
         h('td', { class: 'nowrap' }, open ? [
           h('button', { class: 'btn ghost sm', type: 'button', onclick: () => changeQty(l) }, t('plan.change')), ' ',

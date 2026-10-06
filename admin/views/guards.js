@@ -1,7 +1,7 @@
 import { sb } from '../../shared/auth.js';
 import { h, mount, loading, empty, chip, toast, run, askNote, confirmBox, openModal, bar, guardTag, money, pct, int, fmtDay, fmtDateTime, debounce, colorOf } from '../../shared/ui.js';
 import { t, pick } from '../../shared/i18n.js';
-import { S, db, loadRefs, itemName, typeName, limitUsd, thresholds, personName, levelsMap, levelKey } from '../data.js';
+import { S, inBudget, db, loadRefs, itemName, typeName, limitUsd, thresholds, personName, levelsMap, levelKey } from '../data.js';
 import { sourceChip, tableOf, sizeSelect } from '../common.js';
 import { manage, showSecret } from '../api.js';
 
@@ -107,7 +107,7 @@ export async function renderDetail(box, { no }) {
         ledger.length ? tableOf([t('req.signedAt'), t('req.item'), t('req.size'), { label: t('req.qty'), r: true }, { label: t('stock.price'), r: true }, { label: t('guards.sum'), r: true }, t('req.source')],
           [...ledger.map((r) => h('tr', { class: r.in_fy ? '' : 'sub' },
             h('td', { class: 'nowrap' }, fmtDateTime(r.signed_at)), h('td', null, itemName(r.item_id), S.itemById.get(r.item_id)?.in_budget === false ? [' ', chip(t('guards.outOfBudget'))] : null), h('td', null, r.size),
-            h('td', { class: 'r num' }, `×${r.qty}`), h('td', { class: 'r num' }, money(r.unit_price)), h('td', { class: 'r num' }, money(r.line_total)),
+            h('td', { class: 'r num' }, `×${r.qty}`), h('td', { class: 'r num' }, inBudget(r.item_id) ? money(r.unit_price) : '—'), h('td', { class: 'r num' }, inBudget(r.item_id) ? money(r.line_total) : '—'),
             h('td', null, sourceChip(r.source)))),
           h('tr', { class: 'total' }, h('td', { colspan: 5 }, t('guards.fyTotal')), h('td', { class: 'r num' }, money(me.spent)), h('td'))]) : empty(t('guards.nothingReceived'))),
       // sizes

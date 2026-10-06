@@ -46,6 +46,8 @@ export const landDays = () => num('land_days', 180);
 export const airDays = () => num('air_days', 30);
 export const thresholds = () => ({ green: num('budget_green_max', 60), yellow: num('budget_yellow_max', 80), rust: num('budget_rust_max', 95) });
 
+// equipment (holders, duty belt, badge …) is kept out of every money figure
+export const inBudget = (id) => S.itemById.get(id)?.in_budget !== false;
 export const itemName = (id) => { const it = S.itemById.get(id); return it ? pick(it) : '?'; };
 export const typeName = (code) => { const x = S.typeByCode.get(code); return x ? pick(x) : code; };
 export const guardNo = (id) => { const p = S.byId.get(id); return p ? p.guard_no : null; };

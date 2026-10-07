@@ -12,7 +12,7 @@ export async function render(box) {
   async function load() {
     const [levelRows, batches, notices] = await Promise.all([
       db(sb.rpc('stock_levels')),
-      db(sb.from('stock_batches').select('*').gt('qty_remaining', 0).order('received_on')),
+      db(sb.from('stock_batches').select('*').gt('qty_remaining', 0).order('received_on', { nullsFirst: true })),
       db(sb.from('announcements').select('*').order('created_at', { ascending: false }).limit(10)),
     ]);
     const byItem = new Map();
@@ -45,7 +45,7 @@ export async function render(box) {
         h('div', { class: 'head' }, h('h2', null, t('stock.batches')),
           h('label', { class: 'inline-check small' }, h('input', { type: 'checkbox', checked: showBatches, onchange: (e) => { showBatches = e.target.checked; load(); } }), t('stock.showBatches'))),
         showBatches ? (batches.length ? tableOf([t('stock.received'), t('req.item'), t('req.size'), { label: t('stock.left'), r: true }, { label: t('stock.price'), r: true }, t('stock.basis')],
-          batches.map((b) => h('tr', null, h('td', { class: 'nowrap' }, fmtDay(b.received_on)), h('td', null, itemName(b.item_id)), h('td', null, b.size),
+          batches.map((b) => h('tr', null, h('td', { class: 'nowrap' }, b.received_on ? fmtDay(b.received_on) : t('stock.preSystem')), h('td', null, itemName(b.item_id)), h('td', null, b.size),
             h('td', { class: 'r num' }, `${int(b.qty_remaining)} / ${int(b.qty_received)}`), h('td', { class: 'r num' }, money(b.unit_price)),
             h('td', { class: 'small muted' }, b.order_id ? t('stock.fromOrder') : (b.basis || ''))))) : empty(t('stock.none'))) : null),
       h('section', { class: 'section' },
@@ -77,7 +77,7 @@ export async function render(box) {
     const sizeBox = h('div');
     const qty = h('input', { type: 'number', min: 1, step: 1, required: true });
     const price = h('input', { type: 'number', min: 0, step: '0.01', required: true });
-    const date = h('input', { type: 'date', value: todayYmd() });
+    const date = h('input', { type: 'date', value: '' });
     let size = null;
     const drawSize = () => {
       const it = S.itemById.get(item.value);
@@ -87,7 +87,7 @@ export async function render(box) {
     item.addEventListener('change', drawSize); drawSize();
     openModal({
       title: t('stock.addOpening'),
-      body: h('div', { class: 'stack' }, h('p', { class: 'muted small' }, t('stock.openingHint')),
+      body: h('div', { class: 'stack' }, h('p', { class: 'muted small' }, t('stock.openingHint')), h('p', { class: 'muted small' }, t('stock.dateOptional')),
         h('label', { class: 'field' }, h('span', null, t('req.item')), item), sizeBox,
         h('div', { class: 'grid3' },
           h('label', { class: 'field' }, h('span', null, t('req.qty')), qty),
@@ -98,7 +98,7 @@ export async function render(box) {
         if (!item.value || !size.value) throw new Error('size is required on every line');
         if (!Number.isInteger(q) || q < 1 || !(p >= 0) || price.value === '') throw new Error(t('err.unknown'));
         const { data: { user } } = await sb.auth.getUser();
-        await db(sb.from('stock_batches').insert({ item_id: item.value, size: size.value, qty_received: q, qty_remaining: q, unit_price: p, received_on: date.value || todayYmd(), basis: 'opening balance', created_by: user.id }));
+        await db(sb.from('stock_batches').insert({ item_id: item.value, size: size.value, qty_received: q, qty_remaining: q, unit_price: p, received_on: date.value || null, basis: 'opening balance', created_by: user.id }));
         toast(t('common.saved'), 'ok'); await reload();
       } }],
     });

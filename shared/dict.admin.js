@@ -113,6 +113,8 @@ export const ADMIN = {
   'stock.received': ['Поступило', 'Received', 'Gelip gowşan'],
   'stock.left': ['Осталось', 'Left', 'Galan'],
   'stock.price': ['Цена', 'Price', 'Baha'],
+  'stock.preSystem': ['до системы', 'before the system', 'ulgamdan öň'],
+  'stock.dateOptional': ['Дату можно не указывать: остаток будет помечен «до системы» и спишется первым.', 'The date is optional: leave it empty and the stock is shown as “before the system” and is issued first.', 'Senesini ýazmasaňyz, galyndy «ulgamdan öň» diýlip bellenýär we ilki berilýär.'],
   'stock.basis': ['Основание', 'Basis', 'Esas'],
   'stock.fromOrder': ['из заказа', 'from an order', 'sargytdan'],
 

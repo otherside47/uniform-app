@@ -80,7 +80,7 @@ export async function renderDetail(box, { id }) {
     bought.push({ date: o.ordered_on, time: new Date(o.ordered_on).getTime(), kind: 'order', ref: o.procurement_ref, basis: o.basis, basisId: o.basis_id, ship: o.shipping, size: l.size, qty: l.qty, got, bonus, price: Number(l.unit_price), status: o.status, closed: !!l.closed_at });
   }
   for (const b of batches.filter((x) => !x.order_id)) {
-    bought.push({ date: b.received_on, time: new Date(b.received_on).getTime(), kind: 'opening', ref: b.procurement_ref, basis: b.basis, size: b.size, qty: b.qty_received, got: b.qty_received, bonus: 0, price: Number(b.unit_price) });
+    bought.push({ date: b.received_on, time: b.received_on ? new Date(b.received_on).getTime() : 0, kind: 'opening', ref: b.procurement_ref, basis: b.basis, size: b.size, qty: b.qty_received, got: b.qty_received, bonus: 0, price: Number(b.unit_price) });
   }
   bought.sort((a, b) => b.time - a.time);
 
@@ -93,13 +93,15 @@ export async function renderDetail(box, { id }) {
   function draw() {
     const buyQty = bought.reduce((s, r) => s + r.qty, 0);
     const buySum = bought.reduce((s, r) => s + r.qty * r.price, 0);
-    const last = bought[0];
+    const dated = bought.filter((r) => r.date), undated = bought.filter((r) => !r.date);
+    const last = dated[0] || bought[0];
+    const dayOf = (d) => (d ? fmtDay(d) : t('stock.preSystem'));
     const issQty = issued.reduce((s, r) => s + r.qty, 0);
 
     // purchases per year
-    const keys = [...new Set(bought.map((r) => yearKey(r.date, mode)))].sort((a, b) => b - a);
+    const keys = [...new Set(dated.map((r) => yearKey(r.date, mode)))].sort((a, b) => b - a);
     const byYear = keys.map((k) => {
-      const rows = bought.filter((r) => yearKey(r.date, mode) === k);
+      const rows = dated.filter((r) => yearKey(r.date, mode) === k);
       const prices = rows.map((r) => r.price);
       return { k, qty: rows.reduce((s, r) => s + r.qty, 0), sum: rows.reduce((s, r) => s + r.qty * r.price, 0), min: Math.min(...prices), max: Math.max(...prices), avg: avg(rows), n: rows.length };
     });
@@ -111,6 +113,14 @@ export async function renderDetail(box, { id }) {
         h('td', { class: 'r num' }, money(y.min)), h('td', { class: 'r num' }, h('b', null, money(y.avg))), h('td', { class: 'r num' }, money(y.max)),
         h('td', { class: 'r num' }, d === null ? '—' : h('span', { class: d > 0.05 ? 't-rust' : d < -0.05 ? 't-green' : '' }, `${d > 0 ? '+' : ''}${d.toFixed(1)}%`)));
     });
+
+    // stock from before the system has no date: its own row, never mixed into a year
+    if (undated.length) {
+      const pr = undated.map((r) => r.price);
+      priceRows.push(h('tr', null,
+        h('td', null, t('stock.preSystem')), h('td', { class: 'r num' }, int(undated.reduce((s, r) => s + r.qty, 0))), h('td', { class: 'r num' }, money(undated.reduce((s, r) => s + r.qty * r.price, 0))),
+        h('td', { class: 'r num' }, money(Math.min(...pr))), h('td', { class: 'r num' }, h('b', null, money(avg(undated)))), h('td', { class: 'r num' }, money(Math.max(...pr))), h('td', { class: 'r num' }, '—')));
+    }
 
     // issued per year and by size
     const iKeys = [...new Set(issued.map((r) => yearKey(r.date, mode)))].sort((a, b) => b - a);
@@ -148,16 +158,16 @@ export async function renderDetail(box, { id }) {
           h('div', null, h('dt', null, t('item.bought')), h('dd', { class: 'num' }, int(buyQty))),
           h('div', null, h('dt', null, t('item.spent')), h('dd', { class: 'num' }, money(buySum, 0))),
           h('div', null, h('dt', null, t('item.issuedTotal')), h('dd', { class: 'num' }, int(issQty))),
-          h('div', null, h('dt', null, t('item.lastPrice')), h('dd', { class: 'num' }, last ? money(last.price) : '—'), last ? h('div', { class: 'muted small' }, fmtDay(last.date)) : null))),
+          h('div', null, h('dt', null, t('item.lastPrice')), h('dd', { class: 'num' }, last ? money(last.price) : '—'), last ? h('div', { class: 'muted small' }, dayOf(last.date)) : null))),
       h('section', { class: 'section' },
         h('div', { class: 'head' }, h('h2', null, t('item.priceByYear')), h('span', { class: 'muted small' }, t('item.priceHint'))),
         bought.length ? [priceRows.length ? tableOf([t(mode === 'fy' ? 'item.fy' : 'item.year'), { label: t('item.qty'), r: true }, { label: t('item.sum'), r: true }, { label: t('item.min'), r: true }, { label: t('item.avg'), r: true }, { label: t('item.max'), r: true }, { label: t('item.change'), r: true }], priceRows, { cls: 'keep yr' }) : null,
-          bought.length > 1 ? priceChart(bought) : null] : empty(t('item.noPurchases'))),
+          dated.length > 1 ? priceChart(dated) : null] : empty(t('item.noPurchases'))),
       h('section', { class: 'section' },
         h('div', { class: 'head' }, h('h2', null, t('item.purchases'))),
         bought.length ? tableOf([t('item.date'), t('item.doc'), t('req.size'), { label: t('item.ordered'), r: true }, { label: t('item.received'), r: true }, { label: t('stock.price'), r: true }, { label: t('item.sum'), r: true }, t('item.shipping')],
           bought.map((r) => h('tr', null,
-            h('td', { class: 'nowrap' }, fmtDay(r.date)),
+            h('td', { class: 'nowrap' }, dayOf(r.date)),
             h('td', null, r.kind === 'opening' ? chip(t('item.opening'), 'info') : null, r.kind === 'opening' ? ' ' : null, r.ref ? h('b', null, r.ref) : (r.kind === 'opening' ? null : h('span', { class: 'muted' }, '—')),
               (r.basis || r.basisId) ? h('div', { class: 'muted small' }, [S.baseById.get(r.basisId) ? pick(S.baseById.get(r.basisId)) : null, r.basis].filter(Boolean).join(' — ')) : null),
             h('td', null, sameSize(r.size) || '—'),

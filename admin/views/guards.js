@@ -53,7 +53,7 @@ export async function renderDetail(box, { no }) {
       db(sb.rpc('guard_spend')),
       db(sb.rpc('guard_ledger', { p_guard_no: p.guard_no })),
       db(sb.rpc('item_status', { p_guard: p.id })),
-      db(sb.from('guard_sizes').select('*').eq('guard_id', p.id)),
+      db(sb.from('guard_item_sizes').select('*').eq('guard_id', p.id)),
       db(sb.from('size_changes').select('*').eq('guard_id', p.id).order('changed_at', { ascending: false }).limit(30)),
     ]);
     const me = spendRows.find((r) => r.guard_no === p.guard_no) || { spent: 0, pct: 0 };
@@ -62,8 +62,9 @@ export async function renderDetail(box, { no }) {
     const fy = ledger.filter((r) => r.in_fy);
     const remaining = limitUsd() - Number(me.spent);
     const statusById = new Map(status.map((s) => [s.item_id, s]));
-    const sizeByType = new Map(sizes.map((s) => [s.size_type, s.value]));
-    for (const st of S.sizeTypes) if (!sizeByType.has(st.code) && st.options.length === 1) sizeByType.set(st.code, st.options[0]);
+    // size per catalog item (single-option items need no input)
+    const sizeByItem = new Map(sizes.map((s) => [s.item_id, s.value]));
+    for (const it of S.items) if (!sizeByItem.has(it.id) && S.typeByCode.get(it.size_type)?.options.length === 1) sizeByItem.set(it.id, S.typeByCode.get(it.size_type).options[0]);
 
     mount(page,
       h('div', null, h('a', { href: '#/guards', class: 'small' }, `← ${t('nav.guards')}`)),
@@ -98,7 +99,7 @@ export async function renderDetail(box, { no }) {
             if (!s || !s.last_issued) chipEl = chip(t('guards.neverIssued'), 'info');
             else if (s.is_due) chipEl = chip(t('guards.due'), 'rust');
             else chipEl = chip(t('guards.notDue'), 'ok');
-            return h('tr', null, h('td', null, pick(i)), h('td', null, t(`season.${i.season}`)), h('td', null, sizeByType.get(i.size_type) || h('span', { class: 'muted' }, t('guards.sizeMissing'))),
+            return h('tr', null, h('td', null, pick(i)), h('td', null, t(`season.${i.season}`)), h('td', null, sizeByItem.get(i.id) || h('span', { class: 'muted' }, t('guards.sizeMissing'))),
               h('td', null, fmtDay(s?.last_issued)), h('td', null, fmtDay(s?.due_on)), h('td', null, chipEl));
           }))),
       // received
@@ -115,10 +116,10 @@ export async function renderDetail(box, { no }) {
       // sizes
       h('section', { class: 'section' },
         h('div', { class: 'head' }, h('h2', null, t('guards.sizes'))),
-        tableOf([t('catalog.sizeType'), t('guards.size')],
-          S.sizeTypes.filter((st) => st.active).map((st) => h('tr', null, h('td', null, pick(st)), h('td', null, sizeByType.get(st.code) || h('span', { class: 'muted' }, t('guards.sizeMissing')))))),
-        changes.length ? h('div', { style: 'margin-top:12px' }, tableOf([t('sizes.when'), t('catalog.sizeType'), t('sizes.change')],
-          changes.map((c) => h('tr', { class: 'sub' }, h('td', { class: 'nowrap' }, fmtDateTime(c.changed_at)), h('td', null, typeName(c.size_type)),
+        tableOf([t('req.item'), t('guards.size')],
+          S.items.filter((i) => i.active && (S.typeByCode.get(i.size_type)?.options.length || 0) > 1).map((i) => h('tr', null, h('td', null, pick(i)), h('td', null, sizeByItem.get(i.id) || h('span', { class: 'muted' }, t('guards.sizeMissing')))))),
+        changes.length ? h('div', { style: 'margin-top:12px' }, tableOf([t('sizes.when'), t('req.item'), t('sizes.change')],
+          changes.map((c) => h('tr', { class: 'sub' }, h('td', { class: 'nowrap' }, fmtDateTime(c.changed_at)), h('td', null, c.item_id ? itemName(c.item_id) : typeName(c.size_type)),
             h('td', null, c.old_value ? `${c.old_value} → ${c.new_value}` : t('sizes.initial', { v: c.new_value })))))) : null),
     );
   }
@@ -151,11 +152,11 @@ async function toggleActive(p, reload) {
 
 /* ----- manual or urgent issuance ----- */
 async function manualIssuance(p, reload) {
-  const [levelRows, sizes] = await Promise.all([db(sb.rpc('stock_levels')), db(sb.from('guard_sizes').select('*').eq('guard_id', p.id))]);
+  const [levelRows, sizes] = await Promise.all([db(sb.rpc('stock_levels')), db(sb.from('guard_item_sizes').select('*').eq('guard_id', p.id))]);
   const levels = levelsMap(levelRows);
-  const mine = new Map(sizes.map((s) => [s.size_type, s.value]));
+  const mine = new Map(sizes.map((s) => [s.item_id, s.value]));
   const rows = S.items.filter((i) => i.active).map((i) => {
-    const size = sizeSelect(i.size_type, mine.get(i.size_type) || (S.typeByCode.get(i.size_type)?.options.length === 1 ? S.typeByCode.get(i.size_type).options[0] : ''), { blank: true });
+    const size = sizeSelect(i.size_type, mine.get(i.id) || (S.typeByCode.get(i.size_type)?.options.length === 1 ? S.typeByCode.get(i.size_type).options[0] : ''), { blank: true });
     const qty = h('input', { type: 'number', min: 0, max: i.norm_qty, value: 0, style: 'width:72px' });
     const stock = h('span', { class: 'small' });
     const upd = () => {

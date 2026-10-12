@@ -1,7 +1,7 @@
 import { sb } from '../../shared/auth.js';
 import { h, mount, loading, empty, chip, run, fmtDay, fmtDateTime } from '../../shared/ui.js';
 import { t } from '../../shared/i18n.js';
-import { S, db, typeName } from '../data.js';
+import { S, db, typeName, itemName } from '../data.js';
 import { guardChip, tableOf } from '../common.js';
 
 const KEY = 'uniform.sizes.seen';
@@ -35,7 +35,7 @@ export async function render(box) {
         [...groups.values()].map((g) => h('tr', null,
           h('td', { class: 'nowrap' }, fmtDateTime(g.at), g.at > seen ? [' ', chip(t('sizes.new'), 'info')] : null),
           h('td', null, guardChip(g.guard)),
-          h('td', null, g.items.map((r) => h('div', null, h('b', null, typeName(r.size_type)), ': ', r.old_value ? `${r.old_value} → ` : '', r.new_value)))))) : empty(t('sizes.none')));
+          h('td', null, g.items.map((r) => h('div', null, h('b', null, r.item_id ? itemName(r.item_id) : typeName(r.size_type)), ': ', r.old_value ? `${r.old_value} → ` : '', r.new_value)))))) : empty(t('sizes.none')));
     if (newest) setSeen(newest);
   }
   await load();

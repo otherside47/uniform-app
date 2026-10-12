@@ -1,4 +1,4 @@
-import { boot, topbar, sb } from '../shared/auth.js';
+import { boot, topbar, sb, sessionVerdict, expireSession, showFatal } from '../shared/auth.js';
 import { h, mount, loading, toast, errMsg, drawNav as paintNav } from '../shared/ui.js';
 import { t } from '../shared/i18n.js';
 import { S, loadRefs, db } from './data.js';
@@ -26,7 +26,13 @@ let navTimer = null;
 async function render(ctx) {
   const root = document.getElementById('app');
   mount(root, loading());
-  try { await loadRefs(); } catch (e) { console.error(e); mount(root, h('div', { class: 'banner bad' }, errMsg(e))); return; }
+  try { await loadRefs(); } catch (e) {
+    console.error(e);
+    const v = await sessionVerdict(e);
+    if (v === 'expired') { await expireSession(); return; }
+    if (v === 'refreshed') return render(ctx);
+    showFatal(root, e, { retry: () => render(ctx), logout: ctx.logout }); return;
+  }
   S.me = ctx.profile;
 
   const main = h('main', { class: 'main', id: 'main' });
@@ -45,7 +51,9 @@ async function render(ctx) {
     drawNav(current, pendingN);
   }
 
-  async function route() {
+  let seq = 0;
+  async function route(retried = false) {
+    const my = ++seq;
     if (cleanup) { try { cleanup(); } catch { /* ignore */ } cleanup = null; }
     const parts = (location.hash.replace(/^#\/?/, '') || 'requests').split('/');
     const isItem = parts[0] === 'items' && parts[1];
@@ -65,13 +73,18 @@ async function render(ctx) {
       mount(main, box);
     } catch (e) {
       console.error(e);
+      // a dead session answers every call with 'forbidden': fix the session, or ask to sign in again
+      const v = retried ? 'none' : await sessionVerdict(e);
+      if (my !== seq) return;
+      if (v === 'expired') { await expireSession(); return; }
+      if (v === 'refreshed') { await route(true); return; }
       mount(main, h('div', { class: 'banner bad' }, errMsg(e)));
     }
     window.scrollTo(0, 0);
   }
 
   if (onHash) window.removeEventListener('hashchange', onHash);
-  onHash = route;
+  onHash = () => route();
   window.addEventListener('hashchange', onHash);
   clearInterval(navTimer);
   navTimer = setInterval(() => { const cur = (location.hash.replace(/^#\/?/, '') || 'requests').split('/')[0]; refreshBadge(cur); }, 60000);

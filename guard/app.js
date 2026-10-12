@@ -1,4 +1,4 @@
-import { boot, topbar, sb } from '../shared/auth.js';
+import { boot, topbar, sb, sessionVerdict, expireSession, showFatal } from '../shared/auth.js';
 import { h, mount, loading, errMsg } from '../shared/ui.js';
 import { t } from '../shared/i18n.js';
 import { loadRefs } from './data.js';
@@ -13,7 +13,13 @@ let cleanup = null, onHash = null, timer = null;
 async function render(ctx) {
   const root = document.getElementById('app');
   mount(root, loading());
-  try { await loadRefs(ctx.profile); } catch (e) { console.error(e); mount(root, h('div', { class: 'gmain' }, h('div', { class: 'banner bad' }, errMsg(e)))); return; }
+  try { await loadRefs(ctx.profile); } catch (e) {
+    console.error(e);
+    const v = await sessionVerdict(e);
+    if (v === 'expired') { await expireSession(); return; }
+    if (v === 'refreshed') return render(ctx);
+    showFatal(root, e, { retry: () => render(ctx), logout: ctx.logout }); return;
+  }
 
   const main = h('main', { class: 'gmain', id: 'main' });
   const bar = h('nav', { class: 'tabbar', 'aria-label': 'Menu' });
@@ -37,7 +43,9 @@ async function render(ctx) {
     drawBar(cur);
   }
 
-  async function route() {
+  let seq = 0;
+  async function route(retried = false) {
+    const my = ++seq;
     if (cleanup) { try { cleanup(); } catch { /* ignore */ } cleanup = null; }
     const id = TABS.some(([x]) => x === (location.hash.replace(/^#\/?/, '') || 'home')) ? (location.hash.replace(/^#\/?/, '') || 'home') : 'home';
     drawBar(id); refreshBadges(id);
@@ -47,12 +55,19 @@ async function render(ctx) {
       const out = await ({ home, group, sizes, reviews })[id].render(box, ctx, () => refreshBadges(id));
       if (typeof out === 'function') cleanup = out;
       mount(main, box);
-    } catch (e) { console.error(e); mount(main, h('div', { class: 'banner bad' }, errMsg(e))); }
+    } catch (e) {
+      console.error(e);
+      const v = retried ? 'none' : await sessionVerdict(e);
+      if (my !== seq) return;
+      if (v === 'expired') { await expireSession(); return; }
+      if (v === 'refreshed') { await route(true); return; }
+      mount(main, h('div', { class: 'banner bad' }, errMsg(e)));
+    }
     window.scrollTo(0, 0);
   }
 
   if (onHash) window.removeEventListener('hashchange', onHash);
-  onHash = route; window.addEventListener('hashchange', onHash);
+  onHash = () => route(); window.addEventListener('hashchange', onHash);
   clearInterval(timer);
   timer = setInterval(() => refreshBadges((location.hash.replace(/^#\/?/, '') || 'home')), 60000);
   await route();

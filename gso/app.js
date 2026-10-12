@@ -1,4 +1,4 @@
-import { boot, topbar, sb } from '../shared/auth.js';
+import { boot, topbar, sb, sessionVerdict, expireSession, showFatal } from '../shared/auth.js';
 import { h, mount, loading, empty, drawNav, chip, bar, guardTag, tabs, money, pct, int, fmtDay, fmtDateTime, colorOf, errMsg, run } from '../shared/ui.js';
 import { t, pick } from '../shared/i18n.js';
 import { tableOf } from '../admin/common.js';
@@ -94,12 +94,20 @@ async function signedView(box) {
 async function render(ctx) {
   const root = document.getElementById('app');
   mount(root, loading());
-  try { await loadRefs(); } catch (e) { console.error(e); mount(root, h('div', { class: 'banner bad' }, errMsg(e))); return; }
+  try { await loadRefs(); } catch (e) {
+    console.error(e);
+    const v = await sessionVerdict(e);
+    if (v === 'expired') { await expireSession(); return; }
+    if (v === 'refreshed') return render(ctx);
+    showFatal(root, e, { retry: () => render(ctx), logout: ctx.logout }); return;
+  }
   const main = h('main', { class: 'main', id: 'main' });
   const nav = h('nav', { class: 'nav', 'aria-label': 'Menu' });
   mount(root, topbar({ title: t('gso.title'), profile: ctx.profile, onLogout: ctx.logout }), h('div', { class: 'shell' }, nav, main));
 
-  async function route() {
+  let seq = 0;
+  async function route(retried = false) {
+    const my = ++seq;
     const parts = (location.hash.replace(/^#\/?/, '') || 'guards').split('/');
     const id = NAV.some(([n]) => n === parts[0]) ? parts[0] : 'guards';
     drawNav(nav, NAV.map(([n, key]) => [n, t(key)]), id);
@@ -109,10 +117,17 @@ async function render(ctx) {
       if (id === 'guards' && parts[1]) await ledgerView(box, Number(parts[1]));
       else await ({ guards: guardsView, orders: ordersView, signed: signedView })[id](box);
       mount(main, box);
-    } catch (e) { console.error(e); mount(main, h('div', { class: 'banner bad' }, errMsg(e))); }
+    } catch (e) {
+      console.error(e);
+      const v = retried ? 'none' : await sessionVerdict(e);
+      if (my !== seq) return;
+      if (v === 'expired') { await expireSession(); return; }
+      if (v === 'refreshed') { await route(true); return; }
+      mount(main, h('div', { class: 'banner bad' }, errMsg(e)));
+    }
   }
   if (onHash) window.removeEventListener('hashchange', onHash);
-  onHash = route; window.addEventListener('hashchange', onHash);
+  onHash = () => route(); window.addEventListener('hashchange', onHash);
   await route();
 }
 

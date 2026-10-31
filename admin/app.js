@@ -13,10 +13,11 @@ import * as reviews from './views/reviews.js';
 import * as catalog from './views/catalog.js';
 import * as accounts from './views/accounts.js';
 import * as itemView from './views/item.js';
+import * as fit from './views/fit.js';
 
 const NAV = [
   ['requests', 'nav.requests'], ['guards', 'nav.guards'], ['stock', 'nav.stock'], ['planning', 'nav.planning'],
-  ['groups', 'nav.groups'], ['sizes', 'nav.sizes'], ['reviews', 'nav.reviews'], ['accounts', 'nav.accounts'], ['catalog', 'nav.catalog'],
+  ['groups', 'nav.groups'], ['sizes', 'nav.sizes'], ['fit', 'nav.fit'], ['reviews', 'nav.reviews'], ['accounts', 'nav.accounts'], ['catalog', 'nav.catalog'],
 ];
 
 let cleanup = null;
@@ -68,7 +69,7 @@ async function render(ctx) {
       else if (id === 'guards' && parts[1]) out = await guards.renderDetail(box, { no: Number(parts[1]) });
       else if (id === 'guards') out = await guards.renderList(box);
       else if (id === 'accounts') out = await accounts.render(box, { me: ctx.profile });
-      else out = await ({ requests, stock, planning, groups, sizes, reviews, catalog })[id].render(box);
+      else out = await ({ requests, stock, planning, groups, sizes, fit, reviews, catalog })[id].render(box);
       if (typeof out === 'function') cleanup = out;
       mount(main, box);
     } catch (e) {

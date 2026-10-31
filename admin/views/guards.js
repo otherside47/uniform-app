@@ -4,6 +4,7 @@ import { t, pick } from '../../shared/i18n.js';
 import { S, db, loadRefs, itemName, typeName, limitUsd, thresholds, personName, levelsMap, levelKey } from '../data.js';
 import { sourceChip, tableOf, sizeSelect } from '../common.js';
 import { manage, showSecret } from '../api.js';
+import { fitSection, fitKinds } from './fit.js';
 
 /* ============================== list ============================== */
 // an item of the other gender is hidden once the guard's gender is known
@@ -64,13 +65,16 @@ export async function renderDetail(box, { no }) {
   if (!p) { mount(page, empty(t('guards.notFound')), h('a', { href: '#/guards' }, t('common.back'))); return; }
 
   async function load() {
-    const [spendRows, ledger, status, sizes, changes] = await Promise.all([
+    const [spendRows, ledger, status, sizes, changes, fitAll] = await Promise.all([
       db(sb.rpc('guard_spend')),
       db(sb.rpc('guard_ledger', { p_guard_no: p.guard_no })),
       db(sb.rpc('item_status', { p_guard: p.id })),
       db(sb.from('guard_item_sizes').select('*').eq('guard_id', p.id)),
       db(sb.from('size_changes').select('*').eq('guard_id', p.id).order('changed_at', { ascending: false }).limit(30)),
+      db(sb.rpc('fit_exceptions_list')),
     ]);
+    const fit = fitAll.filter((f) => f.guard_id === p.id);
+    const fitOpen = new Set(fit.filter((f) => f.is_open).map((f) => f.item_id));
     const me = spendRows.find((r) => r.guard_no === p.guard_no) || { spent: 0, pct: 0 };
     const th = thresholds();
     const color = colorOf(me.pct, th);
@@ -115,9 +119,11 @@ export async function renderDetail(box, { no }) {
             if (!s || !s.last_issued) chipEl = chip(t('guards.neverIssued'), 'info');
             else if (s.is_due) chipEl = chip(t('guards.due'), 'rust');
             else chipEl = chip(t('guards.notDue'), 'ok');
+            if (fitOpen.has(i.id)) chipEl = h('span', null, chipEl, ' ', chip(t('fit.chip'), 'rust'));
             return h('tr', null, h('td', null, pick(i)), h('td', null, t(`season.${i.season}`)), h('td', null, sizeByItem.get(i.id) || h('span', { class: 'muted' }, t('guards.sizeMissing'))),
               h('td', null, fmtDay(s?.last_issued)), h('td', null, fmtDay(s?.due_on)), h('td', null, chipEl));
           }))),
+      fit.length ? fitSection(fit, load) : null,
       // received
       h('section', { class: 'section' },
         h('div', { class: 'head' }, h('h2', null, t('guards.received')), h('span', { class: 'muted small' }, t('guards.receivedHint'))),
@@ -197,13 +203,27 @@ async function manualIssuance(p, reload) {
     for (const r of rows) r.qty.max = kind.value === 'planned' ? r.item.norm_qty : Math.max(r.item.norm_qty, r.item.hire_qty || 1);
   });
   const err = h('p', { class: 'error-text hidden' });
+  // off-size: shown after the first send attempt, one row per line that differs from the card size
+  const fitBox = h('div', { class: 'stack hidden' });
+  let fitRows = [];
+  const offSize = (lines) => lines.filter((l) => { const g = mine.get(l.item_id); return g && g !== l.size; });
+  const showFit = (off) => {
+    fitRows = off.map((l) => {
+      const kindSel = h('select', null, fitKinds().map(([k, label]) => h('option', { value: k }, label)));
+      const note = h('input', { type: 'text', placeholder: t('fit.comment') });
+      return { l, kindSel, note, node: h('tr', null, h('td', null, itemName(l.item_id)), h('td', null, `${mine.get(l.item_id)} → ${l.size}`), h('td', null, kindSel), h('td', null, note)) };
+    });
+    mount(fitBox, h('p', { class: 'banner warn', style: 'margin:0' }, t('fit.warn')),
+      tableOf([t('req.item'), t('fit.cardToIssued'), t('fit.reason'), t('fit.comment')], fitRows.map((r) => r.node)));
+    fitBox.classList.remove('hidden');
+  };
 
   openModal({
     title: t('guards.issueTitle', { no: p.guard_no }), wide: true,
     body: h('div', { class: 'stack' },
       h('p', { class: 'muted small' }, t('guards.issueHint')),
       tableOf([t('req.item'), t('req.size'), t('req.qty'), t('req.stock')], rows.map((r) => r.node)),
-      h('label', { class: 'field' }, h('span', null, t('guards.kind')), kind), reasonBox, err),
+      h('label', { class: 'field' }, h('span', null, t('guards.kind')), kind), reasonBox, fitBox, err),
     actions: [
       { label: t('common.cancel') },
       { label: t('guards.sendSign'), kind: 'primary', keepOpen: true, onClick: async ({ close }) => {
@@ -213,10 +233,15 @@ async function manualIssuance(p, reload) {
         if (!lines.length) return fail(t('guards.pickItems'));
         if (lines.some((l) => !l.size)) return fail(t('err.sizeRequired'));
         if (needsNote() && !reason.value.trim()) return fail(t('err.reasonRequired'));
-        await db(sb.rpc('issue_manually', {
+        const off = offSize(lines);
+        if (!off.length) { fitRows = []; fitBox.classList.add('hidden'); }
+        else if (fitRows.length !== off.length || off.some((l, i) => fitRows[i].l.item_id !== l.item_id || fitRows[i].l.size !== l.size)) { showFit(off); return fail(t('fit.needReason')); }
+        if (fitRows.some((r) => r.kindSel.value === 'other' && !r.note.value.trim())) return fail(t('fit.needComment'));
+        const issuanceId = await db(sb.rpc('issue_manually', {
           p_guard: p.id, p_lines: lines, p_kind: kind.value, p_reason: needsNote() ? reason.value.trim() : null,
           p_paper_done: needsNote() && paper.checked, p_paper_on: needsNote() && paper.checked ? new Date().toISOString().slice(0, 10) : null,
         }));
+        if (off.length) await db(sb.rpc('record_fit_exceptions', { p_issuance: issuanceId, p_items: fitRows.map((r) => ({ item_id: r.l.item_id, kind: r.kindSel.value, comment: r.note.value })) }));
         toast(t('req.sent'), 'ok'); close(); await reload(); return false;
       } },
     ],

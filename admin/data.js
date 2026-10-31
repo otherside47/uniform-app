@@ -22,7 +22,7 @@ export async function loadRefs() {
   const [items, types, profiles, names, settings, bases, seasons] = await Promise.all([
     db(sb.from('items').select('*').order('name_ru')),
     db(sb.from('size_types').select('*').order('sort_order')),
-    db(sb.from('profiles').select('id,role,guard_no,login,active,is_owner,language,hired_on,must_change_password,deactivated_note')),
+    db(sb.from('profiles').select('id,role,guard_no,login,active,is_owner,language,hired_on,must_change_password,deactivated_note,gender')),
     db(sb.from('profile_names').select('id,full_name')),
     db(sb.from('app_settings').select('*')),
     db(sb.from('order_bases').select('*').order('sort_order')),

@@ -1,7 +1,7 @@
 import { boot, topbar, sb, sessionVerdict, expireSession, showFatal } from '../shared/auth.js';
-import { h, mount, loading, errMsg } from '../shared/ui.js';
+import { h, mount, loading, errMsg, run } from '../shared/ui.js';
 import { t } from '../shared/i18n.js';
-import { loadRefs } from './data.js';
+import { loadRefs, db } from './data.js';
 import * as home from './views/home.js';
 import * as group from './views/group.js';
 import * as sizes from './views/sizes.js';
@@ -10,8 +10,23 @@ import * as reviews from './views/reviews.js';
 const TABS = [['home', 'g.tab.home', '👕'], ['group', 'g.tab.group', '👥'], ['sizes', 'g.tab.sizes', '📏'], ['reviews', 'g.tab.reviews', '★']];
 let cleanup = null, onHash = null, timer = null;
 
+// first login: the guard picks male or female once; the app then shows matching items and sizes
+function askGender(root, ctx) {
+  const choose = (v, btn) => run(btn, async () => {
+    await db(sb.rpc('set_my_gender', { p_gender: v }));
+    ctx.profile.gender = v;
+    await render(ctx);
+  });
+  const mk = (v) => h('button', { class: 'btn primary', type: 'button', style: 'min-height:56px;font-size:18px', onclick: (e) => choose(v, e.currentTarget) }, t(`gender.${v}`));
+  mount(root, topbar({ title: t('g.title'), profile: { login: `№${ctx.profile.guard_no}` }, onLogout: ctx.logout }),
+    h('div', { class: 'gshell' }, h('main', { class: 'gmain' }, h('div', { class: 'gcard stack' },
+      h('h1', null, t('g.genderTitle')), h('p', { class: 'muted' }, t('g.genderHint')),
+      h('div', { class: 'stack' }, mk('m'), mk('f'))))));
+}
+
 async function render(ctx) {
   const root = document.getElementById('app');
+  if (!ctx.profile.gender) { askGender(root, ctx); return; }
   mount(root, loading());
   try { await loadRefs(ctx.profile); } catch (e) {
     console.error(e);

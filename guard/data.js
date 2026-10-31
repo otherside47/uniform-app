@@ -12,7 +12,9 @@ export async function loadRefs(profile) {
     db(sb.from('guard_item_sizes').select('item_id,value').eq('guard_id', profile.id)),
     db(sb.from('season_config').select('*')),
   ]);
-  G.items = items; G.itemById = new Map(items.map((x) => [x.id, x]));
+  // items of the other gender are hidden once the guard has chosen theirs; history still resolves every item name
+  G.items = items.filter((x) => !x.gender || !profile.gender || x.gender === profile.gender);
+  G.itemById = new Map(items.map((x) => [x.id, x]));
   G.types = types; G.typeByCode = new Map(types.map((x) => [x.code, x]));
   G.sizes = new Map(sizes.map((x) => [x.item_id, x.value])); // size per catalog item
   G.seasons = seasons; G.me = profile;

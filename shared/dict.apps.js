@@ -83,6 +83,8 @@ export const APPS = {
   'g.accept': ['Принять', 'Accept', 'Kabul et'],
   'g.decline': ['Отказаться', 'Decline', 'Ret et'],
 
+  'g.genderTitle': ['Ваш пол', 'Your gender', 'Jynsyňyz'],
+  'g.genderHint': ['Выбирается один раз: по нему приложение покажет подходящие вещи и размеры. Позже изменить может только администратор.', 'Chosen once: the app uses it to show matching items and sizes. Only an admin can change it later.', 'Bir gezek saýlanýar: programma şoňa görä degişli zatlary we ölçegleri görkezýär. Soňra diňe admin üýtgedip biler.'],
   'g.sizesSub': ['Выберите размер для каждой вещи отдельно: у разных производителей размеры отличаются. Размер сохраняется сразу, админ видит изменения.', 'Choose a size for each item separately: sizes differ between makers. It is saved at once and the admin sees changes.', 'Her zat üçin ölçegi aýratyn saýlaň: öndürijilerde ölçegler tapawutlanýar. Ol ýerinde saklanýar, admin üýtgeşmeleri görýär.'],
   'g.sizeSaved': ['Размер сохранён', 'Size saved', 'Ölçeg saklandy'],
 

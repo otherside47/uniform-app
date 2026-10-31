@@ -55,6 +55,7 @@ export const ADMIN = {
   'guards.off': ['Отключён', 'Disabled', 'Öçürilen'],
   'guards.hired': ['Принят', 'Hired', 'Işe alnan'],
   'guards.issue': ['Выдать вручную / срочно', 'Issue manually / urgent', 'El bilen / gyssagly ber'],
+  'guards.gender': ['Пол', 'Gender', 'Jyns'],
   'guards.resetPin': ['Сбросить PIN', 'Reset PIN', 'PIN-i täzeden goý'],
   'guards.deactivate': ['Отключить', 'Disable', 'Öçür'],
   'guards.reactivate': ['Включить снова', 'Enable again', 'Täzeden işjeňleşdir'],

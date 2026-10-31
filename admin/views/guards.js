@@ -6,6 +6,21 @@ import { sourceChip, tableOf, sizeSelect } from '../common.js';
 import { manage, showSecret } from '../api.js';
 
 /* ============================== list ============================== */
+// an item of the other gender is hidden once the guard's gender is known
+const forGuard = (it, p) => !it.gender || !p.gender || it.gender === p.gender;
+
+function genderPick(p, reload) {
+  const sel = h('select', { 'aria-label': t('guards.gender') },
+    h('option', { value: '' }, t('gender.unset')), h('option', { value: 'm' }, t('gender.m')), h('option', { value: 'f' }, t('gender.f')));
+  sel.value = p.gender || '';
+  sel.addEventListener('change', () => run(sel, async () => {
+    await db(sb.rpc('admin_set_gender', { p_guard: p.id, p_gender: sel.value || null }));
+    p.gender = sel.value || null;
+    await loadRefs(); toast(t('common.done'), 'ok'); await reload();
+  }));
+  return h('div', { class: 'row small', style: 'gap:8px;margin-top:6px' }, h('span', { class: 'muted' }, `${t('guards.gender')}:`), sel);
+}
+
 export async function renderList(box) {
   const page = h('div', { class: 'stack-lg' });
   mount(box, page); mount(page, loading());
@@ -74,7 +89,8 @@ export async function renderDetail(box, { no }) {
           h('div', null,
             !p.active ? chip(t('guards.off'), 'bad') : null,
             p.deactivated_note ? h('p', { class: 'muted small' }, p.deactivated_note) : null,
-            p.hired_on ? h('p', { class: 'muted small' }, `${t('guards.hired')}: ${fmtDay(p.hired_on)}`) : null)),
+            p.hired_on ? h('p', { class: 'muted small' }, `${t('guards.hired')}: ${fmtDay(p.hired_on)}`) : null,
+            genderPick(p, load))),
         h('div', { class: 'row' },
           p.active ? h('button', { class: 'btn primary', type: 'button', onclick: () => manualIssuance(p, load) }, t('guards.issue')) : null,
           h('button', { class: 'btn', type: 'button', onclick: (e) => resetPin(p, e.currentTarget) }, t('guards.resetPin')),
@@ -93,7 +109,7 @@ export async function renderDetail(box, { no }) {
       h('section', { class: 'section' },
         h('div', { class: 'head' }, h('h2', null, t('guards.itemsStatus'))),
         tableOf([t('req.item'), t('catalog.season'), t('guards.size'), t('guards.lastIssued'), t('guards.dueOn'), t('guards.state')],
-          S.items.filter((i) => i.active).map((i) => {
+          S.items.filter((i) => i.active && forGuard(i, p)).map((i) => {
             const s = statusById.get(i.id);
             let chipEl;
             if (!s || !s.last_issued) chipEl = chip(t('guards.neverIssued'), 'info');
@@ -117,7 +133,7 @@ export async function renderDetail(box, { no }) {
       h('section', { class: 'section' },
         h('div', { class: 'head' }, h('h2', null, t('guards.sizes'))),
         tableOf([t('req.item'), t('guards.size')],
-          S.items.filter((i) => i.active && (S.typeByCode.get(i.size_type)?.options.length || 0) > 1).map((i) => h('tr', null, h('td', null, pick(i)), h('td', null, sizeByItem.get(i.id) || h('span', { class: 'muted' }, t('guards.sizeMissing')))))),
+          S.items.filter((i) => i.active && forGuard(i, p) && (S.typeByCode.get(i.size_type)?.options.length || 0) > 1).map((i) => h('tr', null, h('td', null, pick(i)), h('td', null, sizeByItem.get(i.id) || h('span', { class: 'muted' }, t('guards.sizeMissing')))))),
         changes.length ? h('div', { style: 'margin-top:12px' }, tableOf([t('sizes.when'), t('req.item'), t('sizes.change')],
           changes.map((c) => h('tr', { class: 'sub' }, h('td', { class: 'nowrap' }, fmtDateTime(c.changed_at)), h('td', null, c.item_id ? itemName(c.item_id) : typeName(c.size_type)),
             h('td', null, c.old_value ? `${c.old_value} → ${c.new_value}` : t('sizes.initial', { v: c.new_value })))))) : null),

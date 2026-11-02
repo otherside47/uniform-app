@@ -7,7 +7,7 @@ export async function db(p) { const { data, error } = await p; if (error) throw 
 
 export async function loadRefs(profile) {
   const [items, types, sizes, seasons] = await Promise.all([
-    db(sb.from('items').select('*').eq('active', true).order('name_ru')),
+    db(sb.from('items').select('*').eq('active', true).order('sort_order').order('name_ru')),
     db(sb.from('size_types').select('*').order('sort_order')),
     db(sb.from('guard_item_sizes').select('item_id,value').eq('guard_id', profile.id)),
     db(sb.from('season_config').select('*')),
@@ -19,6 +19,9 @@ export async function loadRefs(profile) {
   G.sizes = new Map(sizes.map((x) => [x.item_id, x.value])); // size per catalog item
   G.seasons = seasons; G.me = profile;
 }
+// shop-floor groups of the home screen, in the order they are shown
+export const CATEGORIES = ['winter', 'summer', 'sport', 'equipment'];
+export const catOf = (item) => (CATEGORIES.includes(item.category) ? item.category : 'equipment');
 export const itemName = (id) => { const i = G.itemById.get(id); return i ? pick(i) : '?'; };
 export const typeName = (code) => { const x = G.typeByCode.get(code); return x ? pick(x) : code; };
 export const seasonName = (s) => t(`season.${s}`);

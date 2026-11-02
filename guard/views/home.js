@@ -2,7 +2,12 @@ import { sb } from '../../shared/auth.js';
 import { h, mount, loading, empty, chip, toast, run, openModal, confirmBox, fmtDay, fmtDateTime } from '../../shared/ui.js';
 import { t, pick } from '../../shared/i18n.js';
 import { hasSizes, openSizes } from './sizepick.js';
-import { G, db, itemName, linesText, mySize, seasonName } from '../data.js';
+import { G, db, itemName, linesText, mySize, CATEGORIES, catOf } from '../data.js';
+import { getTheme, setTheme } from '../theme.js';
+
+// which groups are expanded: kept for the session so a refresh does not fold them
+const openCats = (() => { try { return new Set(JSON.parse(sessionStorage.getItem('g.open') || '[]')); } catch { return new Set(); } })();
+const saveOpen = () => { try { sessionStorage.setItem('g.open', JSON.stringify([...openCats])); } catch { /* private mode */ } };
 
 export async function render(box, ctx, onChange) {
   let alive = true;
@@ -52,22 +57,50 @@ export async function render(box, ctx, onChange) {
       } else {
         state = chip(st.due_on ? t('g.notBefore', { date: fmtDay(st.due_on) }) : t('g.notDue'), '');
       }
-      return h('div', { class: 'item-row' },
-        h('div', null, hasSizes(it) ? h('button', { class: 'name linkish', type: 'button', onclick: () => openSizes(it) }, pick(it)) : h('div', { class: 'name' }, pick(it)),
-          h('div', { class: 'muted small' }, `${seasonName(it.season)} · ${size === 'ONE' ? t('g.oneSize') : size ? `${t('g.size')} ${size}` : t('g.sizeNone')}`, st.last_issued ? ` · ${t('g.last', { date: fmtDay(st.last_issued) })}` : ''),
-          h('div', { style: 'margin-top:4px' }, state)),
-        action);
+      return { requestable: !req && st.requestable && !!size, node: h('div', { class: 'icard' },
+        h('div', { class: 'icard-top' },
+          h('div', null, hasSizes(it) ? h('button', { class: 'name linkish', type: 'button', onclick: () => openSizes(it) }, pick(it)) : h('div', { class: 'name' }, pick(it)),
+            h('div', { class: 'muted small' }, `${size === 'ONE' ? t('g.oneSize') : size ? `${t('g.size')} ${size}` : t('g.sizeNone')}`, st.last_issued ? ` · ${t('g.last', { date: fmtDay(st.last_issued) })}` : ''))),
+        h('div', { class: 'icard-state' }, state),
+        action) };
+    };
+
+    const group = (cat) => {
+      const rows = G.items.filter((it) => catOf(it) === cat).map(itemRow);
+      if (!rows.length) return null;
+      const can = rows.filter((r) => r.requestable).length;
+      const body = h('div', { class: 'cat-body stack-sm' }, rows.map((r) => r.node));
+      body.hidden = !openCats.has(cat);
+      const head = h('button', { class: `cat-head ${cat}`, type: 'button', 'aria-expanded': String(openCats.has(cat)), onclick: () => {
+        const open = body.hidden;
+        body.hidden = !open; head.setAttribute('aria-expanded', String(open));
+        if (open) openCats.add(cat); else openCats.delete(cat);
+        saveOpen();
+      } },
+        h('span', { class: `dot ${cat}` }),
+        h('span', { class: 'cat-main' }, h('span', { class: 'cat-title' }, t(`g.cat.${cat}`)), can ? h('span', { class: 'cat-can' }, t('g.catCan', { n: can })) : null),
+        h('span', { class: 'cat-count' }, String(rows.length)),
+        h('span', { class: 'chev', 'aria-hidden': 'true' }));
+      return h('section', { class: `cat ${cat}` }, head, body);
+    };
+
+    const themeBox = () => {
+      const cur = getTheme();
+      const seg = (v) => h('button', { class: `seg${cur === v ? ' on' : ''}`, type: 'button', 'aria-pressed': String(cur === v), onclick: () => { setTheme(v); load(); } }, t(`g.theme.${v}`));
+      return h('section', null, h('h2', { class: 'sect-title' }, t('g.theme.title')),
+        h('div', { class: 'gcard' }, h('div', { class: 'segbar' }, seg('auto'), seg('light'), seg('dark')), h('p', { class: 'muted small', style: 'margin-top:10px' }, t('g.theme.hint'))));
     };
 
     mount(page,
       h('div', null, h('h1', null, t('g.hello', { no: me.guard_no })), h('p', { class: 'muted small' }, t('g.homeSub'))),
       pend.length ? h('section', { class: 'stack' }, pend.map((i) => signCard(i, linesOf(i.id), load, onChange))) : null,
       notices.length ? noticeCard(notices, seenAt) : null,
-      h('section', null, h('h2', { style: 'margin-bottom:8px' }, t('g.myItems')),
-        h('div', { class: 'gcard' }, G.items.length ? G.items.map(itemRow) : empty(t('g.noItems')))),
-      h('section', null, h('h2', { style: 'margin-bottom:8px' }, t('g.received')),
+      h('section', null, h('h2', { class: 'sect-title' }, t('g.myItems')),
+        G.items.length ? h('div', { class: 'stack-sm' }, CATEGORIES.map(group)) : h('div', { class: 'gcard' }, empty(t('g.noItems')))),
+      h('section', null, h('h2', { class: 'sect-title' }, t('g.received')),
         signed.length ? h('div', { class: 'gcard' }, signed.map((i) => h('div', { class: 'item-row' },
-          h('div', null, linesText(linesOf(i.id))), h('div', { class: 'muted small' }, fmtDay(i.signed_at))))) : h('div', { class: 'gcard' }, empty(t('g.noneReceived')))));
+          h('div', null, linesText(linesOf(i.id))), h('div', { class: 'muted small' }, fmtDay(i.signed_at))))) : h('div', { class: 'gcard' }, empty(t('g.noneReceived')))),
+      themeBox());
   }
 
   function noticeCard(list, seenAt) {

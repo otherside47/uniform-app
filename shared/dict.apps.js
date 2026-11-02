@@ -1,6 +1,16 @@
 // Guard app (g.*) and GSO app (gso.*). Turkmen is a best-effort draft and needs review by a native speaker.
 export const APPS = {
   'g.title': ['Униформа', 'Uniform', 'Uniform'],
+  'g.cat.winter': ['Зимняя форма', 'Winter uniform', 'Gyşky eşik'],
+  'g.cat.summer': ['Летняя форма', 'Summer uniform', 'Tomusky eşik'],
+  'g.cat.sport': ['Спортивная форма', 'Sports uniform', 'Sport eşigi'],
+  'g.cat.equipment': ['Рабочая экипировка', 'Work equipment', 'Iş enjamlary'],
+  'g.catCan': ['можно: {n}', '{n} due', 'bolar: {n}'],
+  'g.theme.title': ['Оформление', 'Appearance', 'Görnüşi'],
+  'g.theme.auto': ['Авто', 'Auto', 'Awto'],
+  'g.theme.light': ['Светлая', 'Light', 'Açyk'],
+  'g.theme.dark': ['Тёмная', 'Dark', 'Garaňky'],
+  'g.theme.hint': ['«Авто» повторяет настройку вашего телефона. Выбор запоминается на этом устройстве.', '"Auto" follows your phone setting. The choice is kept on this device.', '«Awto» telefonyňyzyň sazlamasyna eýerýär. Saýlaw şu enjamda saklanýar.'],
   'g.tab.home': ['Мои вещи', 'My items', 'Zatlarym'],
   'g.tab.group': ['Группа', 'Group', 'Topar'],
   'g.tab.sizes': ['Размеры', 'Sizes', 'Ölçegler'],

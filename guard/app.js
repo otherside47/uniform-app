@@ -2,12 +2,19 @@ import { boot, topbar, sb, sessionVerdict, expireSession, showFatal } from '../s
 import { h, mount, loading, errMsg, run } from '../shared/ui.js';
 import { t } from '../shared/i18n.js';
 import { loadRefs, db } from './data.js';
+import './theme.js';
 import * as home from './views/home.js';
 import * as group from './views/group.js';
 import * as sizes from './views/sizes.js';
 import * as reviews from './views/reviews.js';
 
-const TABS = [['home', 'g.tab.home', '👕'], ['group', 'g.tab.group', '👥'], ['sizes', 'g.tab.sizes', '📏'], ['reviews', 'g.tab.reviews', '★']];
+const svg = (d) => `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const TABS = [
+  ['home', 'g.tab.home', svg('<path d="M8 3 3 6l2 4 3-1v12h8V9l3 1 2-4-5-3a4 4 0 0 1-8 0Z"/>')],
+  ['group', 'g.tab.group', svg('<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M16 5.5a3 3 0 0 1 0 5.7M18 14.4c1.9.8 3 2.7 3 5.6"/>')],
+  ['sizes', 'g.tab.sizes', svg('<path d="M3 8h18v8H3zM7 8v4M11 8v3M15 8v4M19 8v3"/>')],
+  ['reviews', 'g.tab.reviews', svg('<path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9Z"/>')],
+];
 let cleanup = null, onHash = null, timer = null;
 
 // first login: the guard picks male or female once; the app then shows matching items and sizes
@@ -42,7 +49,7 @@ async function render(ctx) {
 
   const badges = { home: 0, group: 0 };
   const drawBar = (cur) => mount(bar, TABS.map(([id, key, icon]) => h('a', { href: `#/${id}`, 'aria-current': cur === id ? 'page' : null },
-    h('span', { 'aria-hidden': 'true' }, icon), t(key), badges[id] ? h('span', { class: 'badge' }, badges[id]) : null)));
+    (() => { const i = h('span', { class: 'tab-ico', 'aria-hidden': 'true' }); i.innerHTML = icon; return i; })(), t(key), badges[id] ? h('span', { class: 'badge' }, badges[id]) : null)));
 
   async function refreshBadges(cur) {
     try {

@@ -84,6 +84,31 @@ export async function render(box, ctx, onChange) {
       return h('section', { class: `cat ${cat}` }, head, body);
     };
 
+    // everything received, newest first: one folding block with a plain number / name / size table
+    const receivedBox = () => {
+      const rows = [];
+      for (const i of signed) for (const l of linesOf(i.id)) rows.push({ l, at: i.signed_at });
+      const body = h('div', { class: 'cat-body' });
+      body.hidden = !openCats.has('received');
+      const table = rows.length
+        ? h('div', { class: 'recv' },
+          h('div', { class: 'recv-row recv-head' }, h('span', null, t('g.col.no')), h('span', null, t('g.col.name')), h('span', { class: 'r' }, t('g.col.size'))),
+          rows.map((r, n) => h('div', { class: 'recv-row' },
+            h('span', { class: 'recv-no' }, String(n + 1)),
+            h('span', null, h('span', { class: 'recv-name' }, itemName(r.l.item_id)), r.l.qty > 1 ? ` ×${r.l.qty}` : '', h('span', { class: 'muted small recv-date' }, fmtDay(r.at))),
+            h('span', { class: 'r recv-size' }, r.l.size === 'ONE' ? '—' : r.l.size))))
+        : empty(t('g.noneReceived'));
+      mount(body, h('div', { class: 'gcard recv-card' }, table));
+      const head = h('button', { class: 'cat-head received', type: 'button', 'aria-expanded': String(openCats.has('received')), onclick: () => {
+        const open = body.hidden;
+        body.hidden = !open; head.setAttribute('aria-expanded', String(open));
+        if (open) openCats.add('received'); else openCats.delete('received');
+        saveOpen();
+      } }, h('span', { class: 'dot received' }), h('span', { class: 'cat-main' }, h('span', { class: 'cat-title' }, t('g.received'))),
+      h('span', { class: 'cat-count' }, String(rows.length)), h('span', { class: 'chev', 'aria-hidden': 'true' }));
+      return h('section', { class: 'cat received' }, head, body);
+    };
+
     const themeBox = () => {
       const cur = getTheme();
       const seg = (v) => h('button', { class: `seg${cur === v ? ' on' : ''}`, type: 'button', 'aria-pressed': String(cur === v), onclick: () => { setTheme(v); load(); } }, t(`g.theme.${v}`));
@@ -97,9 +122,7 @@ export async function render(box, ctx, onChange) {
       notices.length ? noticeCard(notices, seenAt) : null,
       h('section', null, h('h2', { class: 'sect-title' }, t('g.myItems')),
         G.items.length ? h('div', { class: 'stack-sm' }, CATEGORIES.map(group)) : h('div', { class: 'gcard' }, empty(t('g.noItems')))),
-      h('section', null, h('h2', { class: 'sect-title' }, t('g.received')),
-        signed.length ? h('div', { class: 'gcard' }, signed.map((i) => h('div', { class: 'item-row' },
-          h('div', null, linesText(linesOf(i.id))), h('div', { class: 'muted small' }, fmtDay(i.signed_at))))) : h('div', { class: 'gcard' }, empty(t('g.noneReceived')))),
+      receivedBox(),
       themeBox());
   }
 

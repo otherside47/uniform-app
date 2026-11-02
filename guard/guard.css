@@ -86,6 +86,8 @@ body { font-family: var(--font); }
 .cat.summer .cat-head, .cat.summer .icard { background: var(--summer); }
 .cat.sport .cat-head, .cat.sport .icard { background: var(--sport); }
 .cat.equipment .cat-head, .cat.equipment .icard { background: var(--equip); }
+.cat.received .cat-head { background: var(--card); }
+.dot.received { background: var(--primary); }
 .cat-head .dot { width: 14px; height: 14px; border-radius: 50%; flex: none; }
 .dot.winter { background: var(--d-winter); } .dot.summer { background: var(--d-summer); }
 .dot.sport { background: var(--d-sport); } .dot.equipment { background: var(--d-equip); }
@@ -129,3 +131,14 @@ body { font-family: var(--font); }
 .size-grid .sz.none { background: var(--rule-soft); color: var(--muted); }
 .size-grid .sz.mine { border-color: var(--ink); }
 .size-grid + p + a.btn { text-decoration: none; }
+
+/* received items: a quiet table, no borders, every second row faintly shaded */
+.recv-card { padding: 8px 8px; }
+.recv-row { display: grid; grid-template-columns: 32px 1fr auto; gap: 8px; align-items: baseline; padding: 9px 8px; border-radius: 10px; }
+.recv-row:not(.recv-head):nth-child(odd) { background: var(--rule-soft); }
+.recv-head { color: var(--muted); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; padding-bottom: 4px; }
+.recv-no { color: var(--muted); font-variant-numeric: tabular-nums; font-weight: 700; }
+.recv-name { font-weight: 700; }
+.recv-date { display: block; }
+.recv-size { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.r { text-align: right; }

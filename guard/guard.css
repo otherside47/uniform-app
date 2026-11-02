@@ -132,13 +132,17 @@ body { font-family: var(--font); }
 .size-grid .sz.mine { border-color: var(--ink); }
 .size-grid + p + a.btn { text-decoration: none; }
 
-/* received items: a quiet table, no borders, every second row faintly shaded */
-.recv-card { padding: 8px 8px; }
-.recv-row { display: grid; grid-template-columns: 32px 1fr auto; gap: 8px; align-items: baseline; padding: 9px 8px; border-radius: 10px; }
-.recv-row:not(.recv-head):nth-child(odd) { background: var(--rule-soft); }
-.recv-head { color: var(--muted); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; padding-bottom: 4px; }
+/* received items: one block per day, rows tinted by uniform type, tight and borderless */
+.recv-card { padding: 12px; }
+.recv-day + .recv-day { margin-top: 16px; }
+.recv-date { font-weight: 800; font-size: 14px; margin: 0 4px 6px; color: var(--muted); }
+.recv { display: flex; flex-direction: column; gap: 2px; }
+.recv-row { display: grid; grid-template-columns: 28px 1fr auto; gap: 8px; align-items: baseline; padding: 7px 10px; border-radius: 8px; }
+.recv-row.gap { margin-top: 8px; }
+.recv-row.winter { background: var(--winter); }
+.recv-row.summer { background: var(--summer); }
+.recv-row.sport { background: var(--sport); }
+.recv-row.equipment { background: var(--equip); }
 .recv-no { color: var(--muted); font-variant-numeric: tabular-nums; font-weight: 700; }
 .recv-name { font-weight: 700; }
-.recv-date { display: block; }
 .recv-size { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.r { text-align: right; }

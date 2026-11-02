@@ -86,26 +86,41 @@ export async function render(box, ctx, onChange) {
 
     // everything received, newest first: one folding block with a plain number / name / size table
     const receivedBox = () => {
-      const rows = [];
-      for (const i of signed) for (const l of linesOf(i.id)) rows.push({ l, at: i.signed_at });
+      // one block per day of receipt: the date once, then its items numbered from 1, grouped and tinted by uniform type
+      const days = new Map();
+      for (const i of signed) {
+        const key = fmtDay(i.signed_at);
+        if (!days.has(key)) days.set(key, []);
+        for (const l of linesOf(i.id)) days.get(key).push(l);
+      }
+      const rank = (l) => { const it = G.itemById.get(l.item_id); return it ? [CATEGORIES.indexOf(catOf(it)), it.sort_order || 0] : [9, 0]; };
+      let total = 0;
+      const blocks = [...days.entries()].map(([day, ls]) => {
+        ls.sort((a, b) => { const x = rank(a), y = rank(b); return x[0] - y[0] || x[1] - y[1]; });
+        total += ls.length;
+        let prev = null;
+        return h('div', { class: 'recv-day' },
+          h('div', { class: 'recv-date' }, day),
+          h('div', { class: 'recv' }, ls.map((l, n) => {
+            const it = G.itemById.get(l.item_id);
+            const cat = it ? catOf(it) : 'equipment';
+            const gap = prev && prev !== cat; prev = cat;
+            return h('div', { class: `recv-row ${cat}${gap ? ' gap' : ''}` },
+              h('span', { class: 'recv-no' }, String(n + 1)),
+              h('span', { class: 'recv-name' }, itemName(l.item_id), l.qty > 1 ? ` ×${l.qty}` : ''),
+              h('span', { class: 'recv-size' }, l.size === 'ONE' ? '—' : l.size));
+          })));
+      });
       const body = h('div', { class: 'cat-body' });
       body.hidden = !openCats.has('received');
-      const table = rows.length
-        ? h('div', { class: 'recv' },
-          h('div', { class: 'recv-row recv-head' }, h('span', null, t('g.col.no')), h('span', null, t('g.col.name')), h('span', { class: 'r' }, t('g.col.size'))),
-          rows.map((r, n) => h('div', { class: 'recv-row' },
-            h('span', { class: 'recv-no' }, String(n + 1)),
-            h('span', null, h('span', { class: 'recv-name' }, itemName(r.l.item_id)), r.l.qty > 1 ? ` ×${r.l.qty}` : '', h('span', { class: 'muted small recv-date' }, fmtDay(r.at))),
-            h('span', { class: 'r recv-size' }, r.l.size === 'ONE' ? '—' : r.l.size))))
-        : empty(t('g.noneReceived'));
-      mount(body, h('div', { class: 'gcard recv-card' }, table));
+      mount(body, h('div', { class: 'gcard recv-card' }, blocks.length ? blocks : empty(t('g.noneReceived'))));
       const head = h('button', { class: 'cat-head received', type: 'button', 'aria-expanded': String(openCats.has('received')), onclick: () => {
         const open = body.hidden;
         body.hidden = !open; head.setAttribute('aria-expanded', String(open));
         if (open) openCats.add('received'); else openCats.delete('received');
         saveOpen();
       } }, h('span', { class: 'dot received' }), h('span', { class: 'cat-main' }, h('span', { class: 'cat-title' }, t('g.received'))),
-      h('span', { class: 'cat-count' }, String(rows.length)), h('span', { class: 'chev', 'aria-hidden': 'true' }));
+      h('span', { class: 'cat-count' }, String(total)), h('span', { class: 'chev', 'aria-hidden': 'true' }));
       return h('section', { class: 'cat received' }, head, body);
     };
 

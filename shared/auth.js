@@ -107,6 +107,18 @@ export async function boot({ title: titleOf, roles, kind, render }) {
 
   const logout = async () => { try { await sb.auth.signOut(); } catch { /* ignore */ } location.reload(); };
 
+  // A session can die on the server while the page stays open (another sign-in, server-side timeout).
+  // Check on every return to the tab and every 5 minutes, so the person is sent to sign in before the
+  // next action fails with 'no rights'.
+  let watching = false;
+  const watch = async () => {
+    if (watching || screen === 'login' || screen === 'loading' || document.visibilityState === 'hidden') return;
+    watching = true;
+    try { if ((await checkSession()) === 'expired') await expireSession(); } finally { watching = false; }
+  };
+  document.addEventListener('visibilitychange', watch);
+  setInterval(watch, 300000);
+
   function showLogin() {
     screen = 'login';
     const login = h('input', { type: kind === 'guard' ? 'text' : 'text', inputmode: kind === 'guard' ? 'numeric' : 'text', autocomplete: 'username', required: true, autofocus: true, autocapitalize: 'off', spellcheck: 'false' });

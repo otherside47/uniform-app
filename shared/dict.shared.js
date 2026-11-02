@@ -27,6 +27,7 @@ export const SHARED = {
   'err.qtyNorm': ['Количество больше нормы', 'Quantity is above the norm', 'Mukdar kadadan köp'],
   'err.stock': ['Недостаточно на складе', 'Not enough in stock', 'Ammarda ýeterlik ýok'],
   'err.inGroup': ['Вы уже в активной группе', 'You are already in an active group', 'Siz eýýäm işjeň toparda'],
+  'err.sessionRefreshed': ['Сеанс обновлён. Повторите действие.', 'Session refreshed. Please repeat the action.', 'Sessiýa täzelendi. Hereketi gaýtalaň.'],
   'err.sessionExpired': ['Сессия истекла. Войдите снова.', 'Your session has expired. Please sign in again.', 'Sessiýa gutardy. Täzeden giriň.'],
   'err.forbidden': ['Нет прав на это действие', 'You are not allowed to do this', 'Bu hereket üçin hukugyňyz ýok'],
   'err.noteRequired': ['Нужна письменная заметка', 'A written note is required', 'Ýazmaça bellik zerur'],

@@ -108,8 +108,24 @@ export function errMsg(e) {
 export async function run(btn, fn) {
   if (btn) btn.disabled = true;
   try { return await fn(); }
-  catch (e) { console.error(e); toast(errMsg(e), 'bad'); return undefined; }
+  catch (e) { console.error(e); await handleFailure(e); return undefined; }
   finally { if (btn) btn.disabled = false; }
+}
+
+// A refusal caused by a dead session must not look like a real 'no rights': recover the session
+// (tell the person to repeat), or send them to sign in again.
+let lastRefreshAt = 0;
+export async function handleFailure(e) {
+  try {
+    if (!e?.sessionChecked) {
+      const { sessionVerdict, expireSession } = await import('./auth.js');
+      const v = await sessionVerdict(e);
+      if (v === 'expired') { await expireSession(); return; }
+      // a second refusal right after a refresh is a real 'no rights', not a dead session
+      if (v === 'refreshed' && Date.now() - lastRefreshAt > 60000) { lastRefreshAt = Date.now(); toast(t('err.sessionRefreshed'), 'ok'); return; }
+    }
+  } catch { /* fall through to the plain message */ }
+  toast(errMsg(e), 'bad');
 }
 
 /* ---------- modal dialogs ---------- */
@@ -123,7 +139,7 @@ export function openModal({ title, body, actions = [], wide = false, onClose }) 
       if (!a.onClick) return close();
       b.disabled = true;
       try { const r = await a.onClick({ close, button: b }); if (r !== false && !a.keepOpen) close(r); }
-      catch (e) { console.error(e); toast(errMsg(e), 'bad'); }
+      catch (e) { console.error(e); await handleFailure(e); }
       finally { b.disabled = false; }
     });
     foot.appendChild(b);

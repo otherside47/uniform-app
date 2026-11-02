@@ -5,7 +5,6 @@ export const APPS = {
   'g.cat.summer': ['Летняя форма', 'Summer uniform', 'Tomusky eşik'],
   'g.cat.sport': ['Спортивная форма', 'Sports uniform', 'Sport eşigi'],
   'g.cat.equipment': ['Рабочая экипировка', 'Work equipment', 'Iş enjamlary'],
-  'g.notBeforeSeason': ['Не раньше начала сезона: {date}', 'Not before the season starts: {date}', 'Pasyl başlanýança: {date}'],
   'g.sizeChangeAsk': ['Изменить размер «{item}»: {old} → {new}? Администратор увидит это изменение.', 'Change the size of "{item}": {old} → {new}? The admin will see this change.', '"{item}" ölçegini üýtgetmek: {old} → {new}? Admin muny görer.'],
   'g.sizeChangeBtn': ['Изменить', 'Change', 'Üýtget'],
   'g.catCan': ['можно: {n}', '{n} due', 'bolar: {n}'],

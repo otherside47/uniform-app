@@ -57,9 +57,9 @@ export async function render(box, ctx, onChange) {
           }) }, t('g.request'))
           : h('a', { class: 'btn sm', href: '#/sizes' }, t('g.setSize'));
       } else {
-        const nb = nbOf.get(it.id);
-        // the date counts the next season window: an item that cannot be issued out of season shows the season start
-        state = chip(nb ? t(st.due_on && nb <= st.due_on ? 'g.notBefore' : 'g.notBeforeSeason', { date: fmtDay(nb) }) : st.due_on ? t('g.notBefore', { date: fmtDay(st.due_on) }) : t('g.notDue'), '');
+        // the date already includes the season start (see item_not_before)
+        const nb = nbOf.get(it.id) || st.due_on;
+        state = chip(nb ? t('g.notBefore', { date: fmtDay(nb) }) : t('g.notDue'), '');
       }
       return { requestable: !req && st.requestable && !!size, node: h('div', { class: 'icard' },
         h('div', { class: 'icard-top' },

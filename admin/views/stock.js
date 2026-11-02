@@ -3,6 +3,7 @@ import { h, mount, loading, empty, chip, toast, run, openModal, money, int, fmtD
 import { t } from '../../shared/i18n.js';
 import { S, inBudget, db, itemName, levelsMap } from '../data.js';
 import { tableOf, sizeSelect, itemSelect } from '../common.js';
+import { adjustModal } from './stockfix.js';
 
 export async function render(box) {
   const page = h('div', { class: 'stack-lg' });
@@ -27,7 +28,8 @@ export async function render(box) {
       for (const r of rows) {
         itemRows.push(h('tr', null, h('td', null, h('a', { href: `#/items/${it.id}` }, itemName(it.id)), it.active ? null : [' ', chip(t('common.inactive'))]), h('td', null, r.size), h('td', { class: 'r num' }, int(r.on_hand)),
           h('td', { class: 'r num' }, r.reserved ? int(r.reserved) : '—'),
-          h('td', { class: 'r num' }, h('b', null, int(r.available)))));
+          h('td', { class: 'r num' }, h('b', null, int(r.available))),
+          h('td', { class: 'r' }, h('button', { class: 'btn ghost sm', type: 'button', onclick: () => adjustModal({ itemId: it.id, size: r.size, onDone: load }) }, t('adj.fix')))));
       }
     }
 
@@ -36,11 +38,12 @@ export async function render(box) {
         h('div', null, h('h1', null, t('nav.stock')), h('p', { class: 'sub' }, t('stock.summary', { pieces: int(totalPieces), value: money(totalValue) }))),
         h('div', { class: 'row' },
           h('button', { class: 'btn', type: 'button', onclick: (e) => run(e.currentTarget, load) }, t('common.refresh')),
+          h('button', { class: 'btn', type: 'button', onclick: () => adjustModal({ onDone: load }) }, t('adj.title')),
           h('button', { class: 'btn', type: 'button', onclick: () => notifyModal(batches, load) }, t('stock.notify')),
           h('button', { class: 'btn primary', type: 'button', onclick: () => openingModal(load) }, t('stock.addOpening')))),
       h('section', { class: 'section' },
         h('div', { class: 'head' }, h('h2', null, t('stock.levels')), h('span', { class: 'muted small' }, t('stock.levelsHint'))),
-        itemRows.length ? tableOf([t('req.item'), t('req.size'), { label: t('stock.onHand'), r: true }, { label: t('stock.reserved'), r: true }, { label: t('stock.available'), r: true }], itemRows) : empty(t('stock.none'))),
+        itemRows.length ? tableOf([t('req.item'), t('req.size'), { label: t('stock.onHand'), r: true }, { label: t('stock.reserved'), r: true }, { label: t('stock.available'), r: true }, ''], itemRows) : empty(t('stock.none'))),
       h('section', { class: 'section' },
         h('div', { class: 'head' }, h('h2', null, t('stock.batches')),
           h('label', { class: 'inline-check small' }, h('input', { type: 'checkbox', checked: showBatches, onchange: (e) => { showBatches = e.target.checked; load(); } }), t('stock.showBatches'))),

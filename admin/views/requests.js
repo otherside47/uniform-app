@@ -3,6 +3,7 @@ import { h, mount, loading, empty, chip, toast, run, confirmBox, fmtDateTime, fm
 import { t } from '../../shared/i18n.js';
 import { S, db, itemName, linesText, levelsMap, levelKey } from '../data.js';
 import { guardChip, sourceChip, statusChip, tableOf, seasonBanners } from '../common.js';
+import { otherSizeModal, sizesText } from './stockfix.js';
 
 const ACTIVE_GROUP = ['forming', 'slot_set', 'confirmed'];
 
@@ -62,7 +63,7 @@ export async function render(box) {
         pend.length ? pendingTable(pend, linesOf, load) : empty(t('req.noPending'))),
       h('section', { class: 'section' },
         h('div', { class: 'head' }, h('h2', null, t('req.open')), h('span', { class: 'muted small' }, t('req.openHint'))),
-        guardBlocks.length ? h('div', { class: 'stack-lg' }, guardBlocks.map(([gid, rs]) => guardBlock(gid, rs, state, load))) : empty(t('req.noOpen'))),
+        guardBlocks.length ? h('div', { class: 'stack-lg' }, guardBlocks.map(([gid, rs]) => guardBlock(gid, rs, state, load, levelRows))) : empty(t('req.noOpen'))),
       h('section', { class: 'section' },
         h('div', { class: 'head' }, h('h2', null, t('req.recent'))),
         signed.length ? tableOf([t('req.signedAt'), t('req.guard'), t('req.items'), t('req.source'), t('req.paper')],
@@ -93,7 +94,7 @@ export async function render(box) {
         } }, t('req.cancelIssuance'))))));
   }
 
-  function guardBlock(gid, rs, state, reload) {
+  function guardBlock(gid, rs, state, reload, levelRows) {
     const checks = new Map();
     const sendBtn = h('button', { class: 'btn primary', type: 'button', disabled: true }, '');
     const refreshBtn = () => {
@@ -111,9 +112,16 @@ export async function render(box) {
           st.slot ? h('span', { class: 'muted small' }, fmtDateTime(st.slot.starts_at)) : h('span', { class: 'muted small' }, t(`group.${st.group.status === 'slot_set' ? 'slotSet' : st.group.status}`)));
       } else if (st.kind === 'ok') status = chip(t('req.inStock'), 'ok');
       else status = chip(t('req.waiting'), 'rust');
+      const alt = sizesText(levelRows, r.item_id, r.size);
+      const altLine = h('div', { class: 'small muted', title: alt ? t('osz.availTitle', { v: alt }) : t('osz.noneOther') }, alt ? `${t('osz.otherSizes')}: ${alt}` : t('osz.noneOther'));
+      const otherBtn = st.kind === 'group' ? null : h('button', { class: 'btn ghost sm', type: 'button', onclick: async () => {
+        const { data: sz } = await sb.from('guard_item_sizes').select('value').eq('guard_id', gid).eq('item_id', r.item_id).maybeSingle();
+        const single = S.typeByCode.get(S.itemById.get(r.item_id)?.size_type);
+        otherSizeModal({ req: r, cardSize: sz?.value || (single?.options.length === 1 ? single.options[0] : null), onDone: reload });
+      } }, t('osz.btn'));
       return h('tr', null,
         h('td', null, cb), h('td', null, itemName(r.item_id)), h('td', null, r.size), h('td', { class: 'r num' }, `×${r.qty}`),
-        h('td', null, status), h('td', { class: 'muted small nowrap' }, fmtDateTime(r.created_at)));
+        h('td', null, status, altLine, otherBtn), h('td', { class: 'muted small nowrap' }, fmtDateTime(r.created_at)));
     });
     refreshBtn();
     sendBtn.addEventListener('click', () => run(sendBtn, async () => {

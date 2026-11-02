@@ -105,7 +105,7 @@ export async function boot({ title: titleOf, roles, kind, render }) {
   let notice = '';
   try { if (sessionStorage.getItem('uniform.expired')) { sessionStorage.removeItem('uniform.expired'); notice = t('err.sessionExpired'); } } catch { /* private mode */ }
 
-  const logout = async () => { try { await sb.auth.signOut(); } catch { /* ignore */ } location.reload(); };
+  const logout = async () => { try { await sb.auth.signOut({ scope: 'local' }); } catch { /* ignore */ } location.reload(); };
 
   // A session can die on the server while the page stays open (another sign-in, server-side timeout).
   // Check on every return to the tab and every 5 minutes, so the person is sent to sign in before the
@@ -178,7 +178,7 @@ export async function boot({ title: titleOf, roles, kind, render }) {
     try { profile = await loadProfile(); }
     catch (e) { notice = errMsg(e); showLogin(); return; }
     if (!profile || !profile.active || !roles.includes(profile.role)) {
-      await sb.auth.signOut();
+      await sb.auth.signOut({ scope: 'local' });
       notice = t(profile && !profile.active ? 'err.banned' : 'err.wrongApp');
       showLogin(); return;
     }

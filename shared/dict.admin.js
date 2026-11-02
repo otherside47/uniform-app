@@ -6,7 +6,7 @@ export const ADMIN = {
   'nav.stock': ['Склад', 'Stock', 'Ammar'],
   'nav.planning': ['Планирование', 'Planning', 'Meýilnama'],
   'nav.groups': ['Группы', 'Groups', 'Toparlar'],
-  'nav.sizes': ['Размеры', 'Sizes', 'Ölçegler'],
+  'nav.sizes': ['Изменение размеров', 'Size changes', 'Ölçeg üýtgeşmeleri'],
   'osz.btn': ['Другой размер', 'Other size', 'Başga ölçeg'],
   'osz.title': ['Выдать в другом размере', 'Issue in another size', 'Başga ölçegde bermek'],
   'osz.hint': ['{item}: запрошен {size}, в карточке {card}. Выберите размер из имеющихся.', '{item}: requested {size}, card size {card}. Pick a size from stock.', '{item}: soralan {size}, kartoçkada {card}. Ammardan ölçeg saýlaň.'],

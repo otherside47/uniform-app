@@ -2,7 +2,7 @@ import { sb } from '../../shared/auth.js';
 import { h, mount, loading, empty, chip, toast, run, openModal, confirmBox, fmtDay, fmtDateTime } from '../../shared/ui.js';
 import { t, pick } from '../../shared/i18n.js';
 import { hasSizes, openSizes } from './sizepick.js';
-import { G, db, itemName, linesText, mySize, CATEGORIES, catOf } from '../data.js';
+import { G, db, itemName, linesText, mySize, CATEGORIES, catOf, byName } from '../data.js';
 import { getTheme, setTheme } from '../theme.js';
 
 // which groups are expanded: kept for the session so a refresh does not fold them
@@ -17,10 +17,11 @@ export async function render(box, ctx, onChange) {
 
   async function load() {
     const since = new Date(Date.now() - 14 * 864e5).toISOString();
-    const [pend, open, status, signed, hints, notices, seen] = await Promise.all([
+    const [pend, open, status, nbRows, signed, hints, notices, seen] = await Promise.all([
       db(sb.from('issuances').select('*').eq('guard_id', me.id).eq('status', 'pending_signature').order('created_at')),
       db(sb.from('item_requests').select('*').eq('guard_id', me.id).eq('status', 'open').order('created_at')),
       db(sb.rpc('item_status')),
+      db(sb.rpc('item_not_before')).catch(() => []),
       db(sb.from('issuances').select('*').eq('guard_id', me.id).eq('status', 'signed').order('signed_at', { ascending: false }).limit(15)),
       db(sb.rpc('stock_hint')).catch(() => []),
       db(sb.from('announcements').select('*').gte('created_at', since).order('created_at', { ascending: false }).limit(10)).catch(() => []),
@@ -31,6 +32,7 @@ export async function render(box, ctx, onChange) {
     const lines = ids.length ? await db(sb.from('issuance_lines').select('*').in('issuance_id', ids)) : [];
     if (!alive) return;
     const linesOf = (id) => lines.filter((l) => l.issuance_id === id);
+    const nbOf = new Map(nbRows.map((x) => [x.item_id, x.not_before]));
     const stOf = new Map(status.map((s) => [s.item_id, s]));
     const reqOf = new Map(open.map((r) => [r.item_id, r]));
     const stockOf = new Map(hints.map((x) => [x.item_id, x.in_stock]));
@@ -55,7 +57,9 @@ export async function render(box, ctx, onChange) {
           }) }, t('g.request'))
           : h('a', { class: 'btn sm', href: '#/sizes' }, t('g.setSize'));
       } else {
-        state = chip(st.due_on ? t('g.notBefore', { date: fmtDay(st.due_on) }) : t('g.notDue'), '');
+        const nb = nbOf.get(it.id);
+        // the date counts the next season window: an item that cannot be issued out of season shows the season start
+        state = chip(nb ? t(st.due_on && nb <= st.due_on ? 'g.notBefore' : 'g.notBeforeSeason', { date: fmtDay(nb) }) : st.due_on ? t('g.notBefore', { date: fmtDay(st.due_on) }) : t('g.notDue'), '');
       }
       return { requestable: !req && st.requestable && !!size, node: h('div', { class: 'icard' },
         h('div', { class: 'icard-top' },
@@ -66,7 +70,7 @@ export async function render(box, ctx, onChange) {
     };
 
     const group = (cat) => {
-      const rows = G.items.filter((it) => catOf(it) === cat).map(itemRow);
+      const rows = G.items.filter((it) => catOf(it) === cat).sort(byName).map(itemRow);
       if (!rows.length) return null;
       const can = rows.filter((r) => r.requestable).length;
       const body = h('div', { class: 'cat-body stack-sm' }, rows.map((r) => r.node));

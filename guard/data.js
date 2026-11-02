@@ -13,12 +13,13 @@ export async function loadRefs(profile) {
     db(sb.from('season_config').select('*')),
   ]);
   // items of the other gender are hidden once the guard has chosen theirs; history still resolves every item name
-  G.items = items.filter((x) => !x.gender || !profile.gender || x.gender === profile.gender);
+  G.items = items.filter((x) => (!x.gender || !profile.gender || x.gender === profile.gender) && (!x.leader_only || profile.is_shift_leader));
   G.itemById = new Map(items.map((x) => [x.id, x]));
   G.types = types; G.typeByCode = new Map(types.map((x) => [x.code, x]));
   G.sizes = new Map(sizes.map((x) => [x.item_id, x.value])); // size per catalog item
   G.seasons = seasons; G.me = profile;
 }
+export const byName = (a, b) => pick(a).localeCompare(pick(b), undefined, { sensitivity: 'base' });
 // shop-floor groups of the home screen, in the order they are shown
 export const CATEGORIES = ['winter', 'summer', 'sport', 'equipment'];
 export const catOf = (item) => (CATEGORIES.includes(item.category) ? item.category : 'equipment');

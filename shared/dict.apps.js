@@ -5,6 +5,9 @@ export const APPS = {
   'g.cat.summer': ['Летняя форма', 'Summer uniform', 'Tomusky eşik'],
   'g.cat.sport': ['Спортивная форма', 'Sports uniform', 'Sport eşigi'],
   'g.cat.equipment': ['Рабочая экипировка', 'Work equipment', 'Iş enjamlary'],
+  'g.notBeforeSeason': ['Не раньше начала сезона: {date}', 'Not before the season starts: {date}', 'Pasyl başlanýança: {date}'],
+  'g.sizeChangeAsk': ['Изменить размер «{item}»: {old} → {new}? Администратор увидит это изменение.', 'Change the size of "{item}": {old} → {new}? The admin will see this change.', '"{item}" ölçegini üýtgetmek: {old} → {new}? Admin muny görer.'],
+  'g.sizeChangeBtn': ['Изменить', 'Change', 'Üýtget'],
   'g.catCan': ['можно: {n}', '{n} due', 'bolar: {n}'],
   'g.theme.title': ['Оформление', 'Appearance', 'Görnüşi'],
   'g.theme.auto': ['Авто', 'Auto', 'Awto'],
@@ -98,7 +101,7 @@ export const APPS = {
 
   'g.genderTitle': ['Ваш пол', 'Your gender', 'Jynsyňyz'],
   'g.genderHint': ['Выбирается один раз: по нему приложение покажет подходящие вещи и размеры. Позже изменить может только администратор.', 'Chosen once: the app uses it to show matching items and sizes. Only an admin can change it later.', 'Bir gezek saýlanýar: programma şoňa görä degişli zatlary we ölçegleri görkezýär. Soňra diňe admin üýtgedip biler.'],
-  'g.sizesSub': ['Выберите размер для каждой вещи отдельно: у разных производителей размеры отличаются. Размер сохраняется сразу, админ видит изменения.', 'Choose a size for each item separately: sizes differ between makers. It is saved at once and the admin sees changes.', 'Her zat üçin ölçegi aýratyn saýlaň: öndürijilerde ölçegler tapawutlanýar. Ol ýerinde saklanýar, admin üýtgeşmeleri görýär.'],
+  'g.sizesSub': ['Выберите размер для каждой вещи отдельно: у разных производителей размеры отличаются. Первый выбор сохраняется сразу; любое следующее изменение нужно подтвердить, админ его увидит.', 'Choose a size for each item separately: sizes differ between makers. The first choice is saved at once; every later change needs confirmation and the admin sees it.', 'Her zat üçin ölçegi aýratyn saýlaň: öndürijilerde ölçegler tapawutlanýar. Ilkinji saýlaw hemen saklanýar; soňky üýtgeşmeler tassyklanýar we admin görýär.'],
   'g.sizeSaved': ['Размер сохранён', 'Size saved', 'Ölçeg saklandy'],
 
   'g.reviewsSub': ['Оцените вещи, которые получили. Админы не видят, кто написал отзыв.', 'Rate the items you have received. Admins cannot see who wrote a review.', 'Alan zatlaryňyzy baha beriň. Adminler syny kimiň ýazanyny görmeýär.'],

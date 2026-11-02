@@ -315,7 +315,7 @@ export function drawNav(nav, items, current, { badges = {}, main = 4, prefix = '
     kids.push(h('button', { type: 'button', class: 'more-btn', 'aria-expanded': open ? 'true' : 'false',
       'aria-current': rest.some(([id]) => id === current) ? 'page' : null,
       onclick: (ev) => { ev.stopPropagation(); if (nav.hasAttribute('data-open')) nav.removeAttribute('data-open'); else nav.setAttribute('data-open', ''); } },
-      icon('more'), h('span', { class: 'lbl' }, t('common.more'))));
+      icon('more'), h('span', { class: 'lbl' }, t('common.more')), rest.some(([id]) => badges[id]) ? h('span', { class: 'badge' }, '•') : null));
     kids.push(h('div', { class: 'sheet' }, rest.map(([id, label]) => link(id, label, 'sec'))));
   }
   mount(nav, kids);

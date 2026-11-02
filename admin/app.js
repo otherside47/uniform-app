@@ -40,14 +40,20 @@ async function render(ctx) {
   const nav = h('nav', { class: 'nav', 'aria-label': 'Menu' });
   mount(root, topbar({ title: t('app.admin'), profile: ctx.profile, onLogout: ctx.logout }), h('div', { class: 'shell' }, nav, main));
 
-  const drawNav = (current, pendingN) => paintNav(nav, NAV.map(([id, key]) => [id, t(key)]), current, { badges: { requests: pendingN } });
+  const drawNav = (current, pendingN) => paintNav(nav, NAV.map(([id, key]) => [id, t(key)]), current, { badges: { requests: pendingN, sizes: sizesN } });
 
   let pendingN = 0;
+  let sizesN = 0;
   async function refreshBadge(current) {
     try {
       const { count } = await sb.from('item_requests').select('id', { count: 'exact', head: true }).eq('status', 'open');
       const { count: c2 } = await sb.from('issuances').select('id', { count: 'exact', head: true }).eq('status', 'pending_signature');
       pendingN = (count || 0) + (c2 || 0);
+      // size changes (not first entries) that the admin has not opened yet
+      let seen = ''; try { seen = localStorage.getItem('uniform.sizes.seen') || ''; } catch { /* ignore */ }
+      const q = sb.from('size_changes').select('id', { count: 'exact', head: true }).not('old_value', 'is', null);
+      const { count: c3 } = await (seen ? q.gt('changed_at', seen) : q);
+      sizesN = current === 'sizes' ? 0 : (c3 || 0);
     } catch { /* badge is optional */ }
     drawNav(current, pendingN);
   }

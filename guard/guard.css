@@ -88,7 +88,7 @@ body { font-family: var(--font); }
 .cat.equipment .cat-head, .cat.equipment .icard { background: var(--equip); }
 .cat.received .cat-head { background: var(--card); }
 .dot.received { background: var(--primary); }
-.cat-head .dot { width: 14px; height: 14px; border-radius: 50%; flex: none; }
+.cat-head .dot, .size-title .dot { width: 14px; height: 14px; border-radius: 50%; flex: none; }
 .dot.winter { background: var(--d-winter); } .dot.summer { background: var(--d-summer); }
 .dot.sport { background: var(--d-sport); } .dot.equipment { background: var(--d-equip); }
 .cat-main { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
@@ -146,3 +146,12 @@ body { font-family: var(--font); }
 .recv-no { color: var(--muted); font-variant-numeric: tabular-nums; font-weight: 700; }
 .recv-name { font-weight: 700; }
 .recv-size { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* size screen: one tinted block per uniform type */
+.size-block { border-radius: 18px; padding: 6px 16px 4px; border: 1px solid var(--rule); }
+.cat.winter .size-block { background: var(--winter); }
+.cat.summer .size-block { background: var(--summer); }
+.cat.sport .size-block { background: var(--sport); }
+.cat.equipment .size-block { background: var(--equip); }
+.size-title { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 17px; padding: 10px 0 4px; }
+.size-block .item-row:last-child { border-bottom: 0; }

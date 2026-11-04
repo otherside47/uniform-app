@@ -251,7 +251,7 @@ export const ADMIN = {
   'sizes.what': ['Что изменено', 'What changed', 'Näme üýtgedi'],
   'sizes.new': ['новое', 'new', 'täze'],
   'sizes.none': ['Изменений нет', 'No changes', 'Üýtgeşme ýok'],
-  'reviews.sub': ['Оценки вещей. Авторы анонимны.', 'Item ratings. Authors are anonymous.', 'Zatlaryň bahalary. Awtorlar näbelli.'],
+  'reviews.sub': ['Оценки вещей и кто их поставил.', 'Item ratings and who gave them.', 'Zatlaryň bahalary we kim berdi.'],
   'reviews.rating': ['Оценка', 'Rating', 'Baha'],
   'reviews.votes': ['Голосов', 'Votes', 'Ses'],
   'reviews.comment': ['Комментарий', 'Comment', 'Düşündiriş'],

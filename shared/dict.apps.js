@@ -98,7 +98,7 @@ export const APPS = {
   'g.sizesSub': ['Выберите размер для каждой вещи отдельно: у разных производителей размеры отличаются. Первый выбор сохраняется сразу; любое следующее изменение нужно подтвердить, админ его увидит.', 'Choose a size for each item separately: sizes differ between makers. The first choice is saved at once; every later change needs confirmation and the admin sees it.', 'Her zat üçin ölçegi aýratyn saýlaň: öndürijilerde ölçegler tapawutlanýar. Ilkinji saýlaw häziriň özünde saklanýar; soňky üýtgeşmeler tassyklanýar we admin görýär.'],
   'g.sizeSaved': ['Размер сохранён', 'Size saved', 'Ölçeg saklandy'],
 
-  'g.reviewsSub': ['Оцените вещи, которые получили. Админы не видят, кто написал отзыв.', 'Rate the items you have received. Admins cannot see who wrote a review.', 'Alan zatlaryňyzy baha beriň. Adminler syny kimiň ýazanyny görmeýär.'],
+  'g.reviewsSub': ['Оцените вещи, которые получили. Отзыв виден администраторам с вашим номером.', 'Rate the items you have received. Administrators see your number with the review.', 'Alan zatlaryňyzy bahalaň. Syn administratorlara belgiňiz bilen görünýär.'],
   'g.noReviewItems': ['Оценить можно то, что уже получено', 'You can rate what you have already received', 'Diňe alnan zatlary baha berip bolýar'],
   'g.rating': ['Оценка', 'Rating', 'Baha'],
   'g.comment': ['Комментарий (по желанию)', 'Comment (optional)', 'Düşündiriş (islege görä)'],

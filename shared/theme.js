@@ -13,10 +13,17 @@ export function applyTheme() {
   const dark = v === 'dark' || (v === 'auto' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) meta.setAttribute('content', dark ? COLORS.dark : COLORS.light);
+  window.dispatchEvent(new Event('themechange'));
+}
+
+export function effectiveTheme() {
+  const v = getTheme();
+  if (v !== 'auto') return v;
+  return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
 export function setTheme(v) {
-  try { if (v === 'auto') localStorage.removeItem(KEY); else localStorage.setItem(KEY, v); } catch { /* private mode: applies for this visit only */ }
+  try { localStorage.setItem(KEY, v); } catch { /* private mode: applies for this visit only */ }
   applyTheme();
 }
 

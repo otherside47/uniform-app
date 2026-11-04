@@ -3,7 +3,6 @@ import { h, mount, loading, empty, chip, toast, run, openModal, confirmBox, fmtD
 import { t, pick } from '../../shared/i18n.js';
 import { hasSizes, openSizes } from './sizepick.js';
 import { G, db, itemName, linesText, mySize, CATEGORIES, catOf, byName } from '../data.js';
-import { getTheme, setTheme } from '../theme.js';
 
 // which groups are expanded: kept for the session so a refresh does not fold them
 const openCats = (() => { try { return new Set(JSON.parse(sessionStorage.getItem('g.open') || '[]')); } catch { return new Set(); } })();
@@ -128,21 +127,13 @@ export async function render(box, ctx, onChange) {
       return h('section', { class: 'cat received' }, head, body);
     };
 
-    const themeBox = () => {
-      const cur = getTheme();
-      const seg = (v) => h('button', { class: `seg${cur === v ? ' on' : ''}`, type: 'button', 'aria-pressed': String(cur === v), onclick: () => { setTheme(v); load(); } }, t(`g.theme.${v}`));
-      return h('section', null, h('h2', { class: 'sect-title' }, t('g.theme.title')),
-        h('div', { class: 'gcard' }, h('div', { class: 'segbar' }, seg('auto'), seg('light'), seg('dark')), h('p', { class: 'muted small', style: 'margin-top:10px' }, t('g.theme.hint'))));
-    };
-
     mount(page,
       h('div', null, h('h1', null, t('g.hello', { no: me.guard_no })), h('p', { class: 'muted small' }, t('g.homeSub'))),
       pend.length ? h('section', { class: 'stack' }, pend.map((i) => signCard(i, linesOf(i.id), load, onChange))) : null,
       notices.length ? noticeCard(notices, seenAt) : null,
       h('section', null, h('h2', { class: 'sect-title' }, t('g.myItems')),
         G.items.length ? h('div', { class: 'stack-sm' }, CATEGORIES.map(group)) : h('div', { class: 'gcard' }, empty(t('g.noItems')))),
-      receivedBox(),
-      themeBox());
+      receivedBox());
   }
 
   function noticeCard(list, seenAt) {

@@ -2,7 +2,7 @@ import { boot, topbar, sb, sessionVerdict, expireSession, showFatal } from '../s
 import { h, mount, loading, errMsg, run } from '../shared/ui.js';
 import { t } from '../shared/i18n.js';
 import { loadRefs, db } from './data.js';
-import './theme.js';
+import '../shared/theme.js';
 import * as home from './views/home.js';
 import * as group from './views/group.js';
 import * as sizes from './views/sizes.js';

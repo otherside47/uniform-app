@@ -1,6 +1,6 @@
 // [ru, en, tk]. Turkmen strings are a best-effort draft and need review by a native speaker.
 export const ADMIN = {
-  'app.admin': ['Униформа · Админ', 'Uniform · Admin', 'Uniform · Admin'],
+  'app.admin': ['Униформа · Админ', 'Uniform · Admin', 'Uniforma · Admin'],
   'nav.requests': ['Запросы', 'Requests', 'Haýyşlar'],
   'nav.guards': ['Охранники', 'Guards', 'Garawullar'],
   'nav.stock': ['Склад', 'Stock', 'Ammar'],

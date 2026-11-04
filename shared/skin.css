@@ -1,0 +1,93 @@
+/* Shared skin for all three apps (design C): palette, light/dark theme, shapes.
+   Theme follows the phone until a person picks one (html[data-theme]). Loaded after style.css. */
+:root, :root[data-theme="light"] {
+  --font: 'Manrope', 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  --font-num: 'Manrope', 'IBM Plex Sans Condensed', system-ui, sans-serif;
+  --radius: 12px;
+  --paper: #f6f8f7; --card: #ffffff; --ink: #16211e; --muted: #51615b;
+  --rule: #d5dfdb; --rule-soft: #e3eae7;
+  --primary: #0f6e5b; --primary-ink: #ffffff; --primary-soft: #e3f3ec; --primary-soft-ink: #0b5646; --focus: #1b6fb5;
+  --green: #1f7a53; --green-soft: #e3f3ec; --yellow: #b7791f; --rust: #b4532a; --red: #b42318;
+  --yellow-soft: #f8edc9; --rust-soft: #f4e0d5; --red-soft: #f6dcd9;
+  --seg-bg: #e6ece9; --seg-on: #ffffff; --pill: rgba(255, 255, 255, .78); --pill-ink: #3a4a44;
+  --winter: rgba(60, 120, 200, .13); --summer: rgba(214, 170, 90, .20); --equip: rgba(110, 120, 125, .15); --sport: rgba(120, 190, 60, .18);
+  --d-winter: #3c78c8; --d-summer: #c8962f; --d-equip: #6e787d; --d-sport: #5da125;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0e1513; --card: #17201d; --ink: #e6efec; --muted: #9db0a9; --rule: #2c3b36; --rule-soft: #26332f;
+    --primary: #3fbf9f; --primary-ink: #06251d; --primary-soft: rgba(63, 191, 159, .16); --primary-soft-ink: #7fe0c4; --focus: #6cb2ee;
+    --green: #5bc08a; --green-soft: rgba(63, 191, 159, .16);
+    --seg-bg: #1d2a26; --seg-on: #2e413b; --pill: rgba(255, 255, 255, .09); --pill-ink: #c7d6d0;
+    --winter: rgba(80, 140, 220, .17); --summer: rgba(220, 180, 100, .15); --equip: rgba(150, 160, 165, .13); --sport: rgba(140, 210, 80, .14);
+    --d-winter: #6da4ea; --d-summer: #dfb560; --d-equip: #9aa5aa; --d-sport: #8fd04f;
+    --yellow: #e2b640; --rust: #d2764a; --red: #e06a5f; --yellow-soft: rgba(232, 163, 61, .2); --rust-soft: rgba(210, 118, 74, .2); --red-soft: rgba(224, 106, 95, .2);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0e1513; --card: #17201d; --ink: #e6efec; --muted: #9db0a9; --rule: #2c3b36; --rule-soft: #26332f;
+  --primary: #3fbf9f; --primary-ink: #06251d; --primary-soft: rgba(63, 191, 159, .16); --primary-soft-ink: #7fe0c4; --focus: #6cb2ee;
+  --green: #5bc08a; --green-soft: rgba(63, 191, 159, .16);
+  --seg-bg: #1d2a26; --seg-on: #2e413b; --pill: rgba(255, 255, 255, .09); --pill-ink: #c7d6d0;
+  --winter: rgba(80, 140, 220, .17); --summer: rgba(220, 180, 100, .15); --equip: rgba(150, 160, 165, .13); --sport: rgba(140, 210, 80, .14);
+  --d-winter: #6da4ea; --d-summer: #dfb560; --d-equip: #9aa5aa; --d-sport: #8fd04f;
+  --yellow: #e2b640; --rust: #d2764a; --red: #e06a5f; --yellow-soft: rgba(232, 163, 61, .2); --rust-soft: rgba(210, 118, 74, .2); --red-soft: rgba(224, 106, 95, .2);
+  color-scheme: dark;
+}
+
+body { font-family: var(--font); }
+.topbar { background: var(--card); color: var(--ink); border-bottom: 1px solid var(--rule); }
+.topbar button { border-color: var(--rule); }
+.topbar button:hover { background: var(--rule-soft); }
+.langs { background: var(--seg-bg); border-radius: 12px; padding: 3px; gap: 2px; }
+.langs button { border: 0; border-radius: 10px; color: var(--muted); min-height: 34px; }
+.langs button[aria-pressed="true"] { background: var(--seg-on); color: var(--ink); border: 0; font-weight: 700; box-shadow: 0 1px 2px rgba(0, 0, 0, .18); }
+.btn { border-radius: 12px; font-weight: 700; }
+.btn.primary { color: var(--primary-ink); }
+.chip.ok, .chip.info { background: var(--primary-soft); color: var(--primary-soft-ink); }
+
+
+/* topbar: theme switch next to the language switch, both small segmented controls */
+.topbar { gap: 10px; }
+.langs, .themes { display: flex; flex: none; }
+.themes button { display: inline-flex; align-items: center; justify-content: center; min-width: 38px; padding: 0 8px; }
+.themes svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+
+/* shapes shared by admin and GSO */
+.section { border-radius: 18px; }
+dialog.modal { border-color: var(--rule); border-radius: 18px; box-shadow: 0 12px 40px rgba(0, 0, 0, .25); }
+.banner { border-radius: 14px; }
+input[type=text], input[type=password], input[type=number], input[type=date], input[type=datetime-local], input[type=search], input[type=email], select, textarea { border-radius: 12px; }
+.seg { border-radius: 12px; }
+.seg button[aria-pressed="true"] { background: var(--primary-soft); color: var(--primary-soft-ink); font-weight: 700; }
+.chip { font-weight: 700; }
+.chip.ok, .chip.info { background: var(--primary-soft); color: var(--primary-soft-ink); }
+.btn.ghost:hover { background: var(--primary-soft); }
+.tabs button[aria-selected="true"] { color: var(--primary-soft-ink); font-weight: 700; }
+.ledger th { border-bottom-color: var(--rule); font-weight: 700; }
+.ledger tr.total td { border-top-color: var(--rule); }
+.tag { border-color: var(--rule); border-radius: 16px; }
+.nav { background: var(--card); }
+.nav a { border-radius: 12px; font-weight: 600; color: var(--muted); }
+.nav a:hover { background: var(--rule-soft); color: var(--ink); }
+.nav a[aria-current="page"] { background: var(--primary-soft); color: var(--primary-soft-ink); font-weight: 700; }
+.nav .sep { background: var(--rule); }
+.badge { border-radius: 11px; }
+.toast { border-radius: 14px; }
+@media (max-width: 719px) {
+  .nav { padding: 6px 6px calc(8px + env(safe-area-inset-bottom)); gap: 4px; border-top-color: var(--rule); }
+  .nav a, .nav .more-btn { border-radius: 14px; min-height: 56px; font-weight: 600; }
+  .nav a[aria-current="page"], .nav .more-btn[aria-current="page"] { background: var(--primary-soft); color: var(--primary-soft-ink); box-shadow: none; font-weight: 700; }
+  .nav .sheet { border-color: var(--rule); border-radius: 16px; }
+  .nav .sheet a[aria-current="page"] { color: var(--primary-soft-ink); }
+  .topbar .brand { font-size: 16px; }
+}
+@media (max-width: 719px) {
+  .topbar { gap: 6px; padding: 8px 12px; }
+  .brand-sub { display: none; }
+  .langs button { min-width: 34px; padding: 0 6px; }
+  .themes button { min-width: 34px; padding: 0 6px; }
+  .topbar > button { padding: 4px 10px; }
+}

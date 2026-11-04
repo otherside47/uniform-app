@@ -1,6 +1,6 @@
 // Guard app (g.*) and GSO app (gso.*). Turkmen is a best-effort draft and needs review by a native speaker.
 export const APPS = {
-  'g.title': ['Униформа', 'Uniform', 'Uniform'],
+  'g.title': ['Униформа', 'Uniform', 'Uniforma'],
   'g.cat.winter': ['Зимняя форма', 'Winter uniform', 'Gyşky eşik'],
   'g.cat.summer': ['Летняя форма', 'Summer uniform', 'Tomusky eşik'],
   'g.cat.sport': ['Спортивная форма', 'Sports uniform', 'Sport eşigi'],
@@ -8,11 +8,6 @@ export const APPS = {
   'g.sizeChangeAsk': ['Изменить размер «{item}»: {old} → {new}? Администратор увидит это изменение.', 'Change the size of "{item}": {old} → {new}? The admin will see this change.', '"{item}" ölçegini üýtgetmek: {old} → {new}? Admin muny görer.'],
   'g.sizeChangeBtn': ['Изменить', 'Change', 'Üýtget'],
   'g.catCan': ['можно: {n}', '{n} due', 'bolar: {n}'],
-  'g.theme.title': ['Оформление', 'Appearance', 'Görnüşi'],
-  'g.theme.auto': ['Авто', 'Auto', 'Awto'],
-  'g.theme.light': ['Светлая', 'Light', 'Açyk'],
-  'g.theme.dark': ['Тёмная', 'Dark', 'Garaňky'],
-  'g.theme.hint': ['«Авто» повторяет настройку вашего телефона. Выбор запоминается на этом устройстве.', '"Auto" follows your phone setting. The choice is kept on this device.', '«Awto» telefonyňyzyň sazlamasyna eýerýär. Saýlaw şu enjamda saklanýar.'],
   'g.tab.home': ['Мои вещи', 'My items', 'Zatlarym'],
   'g.tab.group': ['Группа', 'Group', 'Topar'],
   'g.tab.sizes': ['Размеры', 'Sizes', 'Ölçegler'],
@@ -111,7 +106,7 @@ export const APPS = {
   'g.reviewSaved': ['Отзыв сохранён', 'Review saved', 'Syn saklandy'],
 
   // GSO app (read-only, guards shown by number only)
-  'gso.title': ['Униформа · GSO', 'Uniform · GSO', 'Uniform · GSO'],
+  'gso.title': ['Униформа · GSO', 'Uniform · GSO', 'Uniforma · GSO'],
   'gso.nav.guards': ['Охранники', 'Guards', 'Garawullar'],
   'gso.nav.orders': ['Заказы', 'Orders', 'Sargytlar'],
   'gso.nav.signed': ['Выдачи', 'Issuances', 'Bermeler'],

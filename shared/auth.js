@@ -1,3 +1,4 @@
+import { effectiveTheme, setTheme } from './theme.js';
 import { SUPABASE_URL, SUPABASE_KEY } from './config.js';
 import { h, mount, toast, errMsg, run } from './ui.js';
 import { t, initLang, setLang, getLang, onLang, LANGS } from './i18n.js';
@@ -74,11 +75,31 @@ export function langSwitch(signedIn) {
   return box;
 }
 
+const SUN = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>';
+const MOON = '<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/>';
+
+/** Light / dark switch: two icon buttons, no text. Starts on whatever the phone uses until a person picks one. */
+export function themeSwitch() {
+  const box = h('div', { class: 'langs themes', role: 'group', 'aria-label': t('theme.title') });
+  const mk = (v, svg) => {
+    const b = h('button', { type: 'button', 'aria-label': t(`theme.${v}`), title: t(`theme.${v}`), onclick: () => setTheme(v) });
+    b.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">${svg}</svg>`; // static icon markup
+    return [v, b];
+  };
+  const btns = [mk('light', SUN), mk('dark', MOON)];
+  const paint = () => { const cur = effectiveTheme(); for (const [v, b] of btns) b.setAttribute('aria-pressed', String(v === cur)); };
+  for (const [, b] of btns) box.appendChild(b);
+  paint();
+  window.addEventListener('themechange', paint);
+  return box;
+}
+
 export function topbar({ title, profile, onLogout }) {
   return h('header', { class: 'topbar' },
-    h('span', { class: 'brand' }, title),
+    h('span', { class: 'brand' }, ...(title.includes(' · ') ? [title.split(' · ')[0], h('span', { class: 'brand-sub' }, ` · ${title.split(' · ').slice(1).join(' · ')}`)] : [title])),
     h('span', { class: 'who' }, profile.login ? `${profile.login}` : ''),
     langSwitch(true),
+    themeSwitch(),
     h('button', { type: 'button', onclick: onLogout }, t('auth.logout')),
   );
 }
@@ -141,7 +162,7 @@ export async function boot({ title: titleOf, roles, kind, render }) {
       h('label', { class: 'field' }, h('span', null, t(kind === 'guard' ? 'auth.pin' : 'auth.password')), pass),
       err, btn,
     );
-    mount(root, h('div', { class: 'login-wrap' }, h('div', { class: 'stack' }, h('div', { class: 'row', style: 'justify-content:flex-end' }, langSwitch(false)), form)));
+    mount(root, h('div', { class: 'login-wrap' }, h('div', { class: 'stack' }, h('div', { class: 'row', style: 'justify-content:flex-end' }, langSwitch(false), themeSwitch()), form)));
   }
 
   function showChangePassword(profile) {

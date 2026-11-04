@@ -283,6 +283,7 @@ const ICONS = {
   requests: '<path d="M4 13l2-8h12l2 8M4 13v6h16v-6M4 13h5l1 2h4l1-2h5"/>',
   guards: '<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M16 5.5a3 3 0 010 5.5M18 14.5c2 .7 3 2.7 3 5.5"/>',
   stock: '<path d="M3 8l9-5 9 5v8l-9 5-9-5zM3 8l9 5 9-5M12 13v8"/>',
+  lots: '<path d="M3 12l9-9h8v8l-9 9zM15.5 8.5h.01"/>',
   planning: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>',
   groups: '<circle cx="7" cy="9" r="2.5"/><circle cx="17" cy="9" r="2.5"/><circle cx="12" cy="14" r="2.5"/><path d="M3 19c0-2 1.8-3.5 4-3.5M21 19c0-2-1.8-3.5-4-3.5M8 21c0-2 1.8-3 4-3s4 1 4 3"/>',
   sizes: '<path d="M3 15L15 3l6 6L9 21zM7 11l2 2M10 8l2 2M13 5l2 2"/>',

@@ -93,3 +93,31 @@ input[type=text], input[type=password], input[type=number], input[type=date], in
   .themes button { min-width: 34px; padding: 0 6px; }
   .topbar > button { padding: 4px 10px; }
 }
+
+/* lots page: folders by year and category, cards with photos */
+.folder > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 14px; font-weight: 800; background: var(--card); border: 1px solid var(--rule); }
+.folder > summary::-webkit-details-marker { display: none; }
+.folder > summary::after { content: ''; margin-left: auto; width: 9px; height: 9px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: rotate(45deg); transition: transform .15s; }
+.folder[open] > summary::after { transform: rotate(-135deg); }
+.folder.year > summary { font-size: 18px; }
+.folder.cat > summary { font-size: 15px; }
+.folder.cat.winter > summary { background: var(--winter); } .folder.cat.summer > summary { background: var(--summer); }
+.folder.cat.sport > summary { background: var(--sport); } .folder.cat.equipment > summary { background: var(--equip); }
+.folder > :not(summary) { margin-top: 10px; }
+.folder.year > :not(summary) { padding-left: 12px; border-left: 2px solid var(--rule-soft); margin-left: 8px; }
+.folder-n { margin-left: 4px; font-size: 12.5px; font-weight: 700; background: var(--pill); color: var(--pill-ink); border-radius: 20px; padding: 2px 9px; }
+.folder .dot { width: 12px; height: 12px; border-radius: 50%; flex: none; }
+.dot.winter { background: var(--d-winter); } .dot.summer { background: var(--d-summer); } .dot.sport { background: var(--d-sport); } .dot.equipment { background: var(--d-equip); }
+.lotgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.lotcard { background: var(--card); border: 1px solid var(--rule); border-radius: 16px; padding: 14px 16px; }
+.lotcard-head { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.lotcode { font-size: 16px; }
+.lotcard-item { font-weight: 700; margin-top: 2px; }
+.lotlink { display: block; margin-top: 4px; overflow-wrap: anywhere; }
+.lotnote { margin-top: 6px; white-space: pre-wrap; }
+.thumbs { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.thumb { padding: 0; border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; width: 64px; height: 64px; background: var(--paper); cursor: pointer; }
+.thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.bigphoto { width: 100%; max-height: 70vh; object-fit: contain; border-radius: 12px; }
+.lotpick { margin-top: 6px; font-size: 13px; }
+.lotpick select { min-height: 32px; padding: 3px 8px; font-size: 13px; }

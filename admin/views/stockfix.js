@@ -4,6 +4,7 @@ import { t } from '../../shared/i18n.js';
 import { S, db, itemName } from '../data.js';
 import { tableOf, sizeSelect, itemSelect } from '../common.js';
 import { fitKinds } from './fit.js';
+import { lotSelect, lotValue } from './lotpick.js';
 
 /* sizes of an item with stock, as a short text for tooltips and hints */
 export function sizesText(levelRows, itemId, exceptSize) {
@@ -59,6 +60,12 @@ export function otherSizeModal({ req, cardSize, onDone }) {
   const note = h('input', { type: 'text', placeholder: t('fit.comment') });
   let chosen = '';
   let dlg = null;
+  const lotBox = h('div', { class: 'lotpick row', style: 'gap:6px' });
+  let lotSel = null;
+  const drawLot = async (size) => {
+    lotSel = await lotSelect(it.id, size);
+    mount(lotBox, lotSel ? [h('span', { class: 'muted' }, `${t('lots.lot')}:`), lotSel] : []);
+  };
 
   async function draw() {
     const levels = await db(sb.rpc('stock_levels'));
@@ -68,7 +75,7 @@ export function otherSizeModal({ req, cardSize, onDone }) {
       const lv = levels.find((x) => x.item_id === it.id && x.size === s);
       const av = lv ? lv.available : 0;
       const ok = av >= req.qty;
-      const radio = h('input', { type: 'radio', name: 'osz', value: s, disabled: !ok, checked: ok && s === chosen, onchange: () => { chosen = s; } });
+      const radio = h('input', { type: 'radio', name: 'osz', value: s, disabled: !ok, checked: ok && s === chosen, onchange: () => { chosen = s; drawLot(s); } });
       return h('tr', null,
         h('td', null, radio),
         h('td', null, h('b', null, s), s === req.size ? [' ', h('span', { class: 'muted small' }, t('osz.requested'))] : null, s === cardSize ? [' ', h('span', { class: 'muted small' }, t('osz.card'))] : null),
@@ -80,6 +87,7 @@ export function otherSizeModal({ req, cardSize, onDone }) {
     mount(body,
       h('p', { class: 'muted small' }, t('osz.hint', { item: itemName(it.id), size: req.size, card: cardSize || '—' })),
       tableOf(['', t('req.size'), { label: t('stock.onHand'), r: true }, { label: t('stock.reserved'), r: true }, { label: t('stock.available'), r: true }, ''], rows),
+      lotBox,
       h('label', { class: 'field' }, h('span', null, t('fit.reason')), kind),
       h('label', { class: 'field' }, h('span', null, t('fit.comment')), note), err);
   }
@@ -91,6 +99,7 @@ export function otherSizeModal({ req, cardSize, onDone }) {
       const fail = (m) => { err.textContent = m; err.classList.remove('hidden'); return false; };
       if (!chosen) return fail(t('osz.pick'));
       if (kind.value === 'other' && !note.value.trim()) return fail(t('fit.needComment'));
+      await db(sb.rpc('set_request_lot', { p_request: req.id, p_lot: lotValue(lotSel) }));
       await db(sb.rpc('send_request_other_size', { p_request: req.id, p_size: chosen, p_kind: kind.value, p_comment: note.value || null }));
       toast(t('req.sent'), 'ok'); close(); if (onDone) await onDone(); return false;
     } }],

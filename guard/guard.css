@@ -67,8 +67,8 @@
 .seg.on { background: var(--seg-on); color: var(--ink); box-shadow: 0 1px 2px rgba(0, 0, 0, .18); }
 
 .stars { display: inline-flex; gap: 2px; }
-.stars button { background: none; border: 0; font-size: 30px; line-height: 1; padding: 4px 3px; color: var(--rule); cursor: pointer; min-width: 44px; min-height: 44px; }
-.stars button[aria-pressed="true"] { color: var(--yellow); }
+.stars button { background: none; border: 0; font-size: 30px; line-height: 1; padding: 4px 3px; color: var(--muted); opacity: .4; cursor: pointer; min-width: 44px; min-height: 44px; }
+.stars button[aria-pressed="true"] { color: var(--yellow); opacity: 1; }
 .slot-pick { display: flex; flex-direction: column; gap: 8px; }
 .slot-pick label { display: flex; gap: 10px; align-items: center; padding: 12px; border: 1px solid var(--rule); border-radius: var(--radius); min-height: 48px; background: var(--card); }
 .roster { list-style: none; margin: 0; padding: 0; }

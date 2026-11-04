@@ -4,6 +4,7 @@ import { t } from '../../shared/i18n.js';
 import { S, db, itemName, linesText, levelsMap, levelKey } from '../data.js';
 import { guardChip, sourceChip, statusChip, tableOf, seasonBanners } from '../common.js';
 import { otherSizeModal, sizesText } from './stockfix.js';
+import { lotSelect, lotValue } from './lotpick.js';
 
 const ACTIVE_GROUP = ['forming', 'slot_set', 'confirmed'];
 
@@ -119,9 +120,16 @@ export async function render(box) {
         const single = S.typeByCode.get(S.itemById.get(r.item_id)?.size_type);
         otherSizeModal({ req: r, cardSize: sz?.value || (single?.options.length === 1 ? single.options[0] : null), onDone: reload });
       } }, t('osz.btn'));
+      // two or more lots of this size on the shelf: the admin picks which one this guard gets (the code follows the item to its review)
+      const lotBox = h('div', { class: 'lotpick row', style: 'gap:6px' });
+      lotSelect(r.item_id, r.size, r.lot_id).then((sel) => {
+        if (!sel) return;
+        lotBox.append(h('span', { class: 'muted' }, `${t('lots.lot')}:`), sel);
+        sel.addEventListener('change', () => run(sel, async () => { await db(sb.rpc('set_request_lot', { p_request: r.id, p_lot: lotValue(sel) })); }));
+      });
       return h('tr', null,
         h('td', null, cb), h('td', null, itemName(r.item_id)), h('td', null, r.size), h('td', { class: 'r num' }, `×${r.qty}`),
-        h('td', null, status, altLine, otherBtn), h('td', { class: 'muted small nowrap' }, fmtDateTime(r.created_at)));
+        h('td', null, status, altLine, lotBox, otherBtn), h('td', { class: 'muted small nowrap' }, fmtDateTime(r.created_at)));
     });
     refreshBtn();
     sendBtn.addEventListener('click', () => run(sendBtn, async () => {

@@ -2,6 +2,7 @@ import { sb } from '../../shared/auth.js';
 import { h, mount, toast, run, confirmBox } from '../../shared/ui.js';
 import { t, pick } from '../../shared/i18n.js';
 import { G, db, catOf, byName } from '../data.js';
+import { fold } from './fold.js';
 
 // One size per catalog item: makers cut differently, so a guard may wear a different size in each item.
 // Blocks follow the uniform type (summer, winter, sport, equipment), names are alphabetical inside each.
@@ -29,8 +30,7 @@ export async function render(box, ctx) {
   const blocks = ORDER.map((cat) => {
     const list = items.filter((i) => catOf(i) === cat).sort(byName);
     if (!list.length) return null;
-    return h('section', { class: `cat ${cat}` },
-      h('div', { class: 'size-block' }, h('div', { class: 'size-title' }, h('span', { class: `dot ${cat}` }), t(`g.cat.${cat}`)), list.map(row)));
+    return fold(cat, `sizes:${cat}`, h('div', { class: 'size-block' }, list.map(row)), { count: list.length });
   });
   mount(box, h('div', null, h('h1', null, t('g.tab.sizes')), h('p', { class: 'muted small' }, t('g.sizesSub'))),
     h('div', { class: 'stack-sm' }, blocks));

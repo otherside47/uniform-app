@@ -4,9 +4,7 @@ import { t, pick } from '../../shared/i18n.js';
 import { hasSizes, openSizes } from './sizepick.js';
 import { G, db, itemName, linesText, mySize, CATEGORIES, catOf, byName } from '../data.js';
 
-// which groups are expanded: kept for the session so a refresh does not fold them
-const openCats = (() => { try { return new Set(JSON.parse(sessionStorage.getItem('g.open') || '[]')); } catch { return new Set(); } })();
-const saveOpen = () => { try { sessionStorage.setItem('g.open', JSON.stringify([...openCats])); } catch { /* private mode */ } };
+import { openCats, saveOpen } from './fold.js';
 
 export async function render(box, ctx, onChange) {
   let alive = true;

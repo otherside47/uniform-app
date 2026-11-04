@@ -16,11 +16,11 @@ export async function render(box) {
     const byItem = new Map(sum.map((r) => [r.item_id, r]));
     let detail = null;
     if (openItem) {
-      const rows = await db(sb.rpc('item_reviews_named', { p_item: openItem }));
+      const rows = await db(sb.rpc('item_reviews_lots', { p_item: openItem }));
       detail = h('section', { class: 'section' },
         h('div', { class: 'head' }, h('h2', null, itemName(openItem)), h('button', { class: 'btn ghost sm', type: 'button', onclick: () => { openItem = null; load(); } }, t('common.close'))),
-        rows.length ? tableOf([t('reviews.date'), t('req.guard'), t('reviews.rating'), t('reviews.comment')], rows.map((r) => h('tr', null,
-          h('td', { class: 'nowrap' }, fmtDay(r.created_at)), h('td', null, guardChip(r.guard_id)), h('td', { class: 'nowrap', 'aria-label': `${r.rating}/5` }, stars(r.rating)), h('td', null, r.comment || '')))) : empty(t('reviews.none')));
+        rows.length ? tableOf([t('reviews.date'), t('req.guard'), t('lots.lot'), t('reviews.rating'), t('reviews.comment')], rows.map((r) => h('tr', null,
+          h('td', { class: 'nowrap' }, fmtDay(r.created_at)), h('td', null, guardChip(r.guard_id)), h('td', { class: 'num' }, r.lot_code || '—'), h('td', { class: 'nowrap', 'aria-label': `${r.rating}/5` }, stars(r.rating)), h('td', null, r.comment || '')))) : empty(t('reviews.none')));
     }
     const items = S.items.filter((i) => byItem.has(i.id));
     mount(page,

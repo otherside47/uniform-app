@@ -5,6 +5,7 @@ import { S, db, loadRefs, itemName, typeName, limitUsd, thresholds, personName, 
 import { sourceChip, tableOf, sizeSelect } from '../common.js';
 import { manage, showSecret } from '../api.js';
 import { fitSection, fitKinds } from './fit.js';
+import { lotSelect, lotValue } from './lotpick.js';
 
 /* ============================== list ============================== */
 // an item of the other gender is hidden once the guard's gender is known
@@ -187,8 +188,12 @@ async function manualIssuance(p, reload) {
       stock.textContent = size.value ? t('stock.availN', { n: have }) : '';
       stock.className = `small ${size.value && have < Number(qty.value) ? 't-red' : 'muted'}`;
     };
-    size.addEventListener('change', upd); qty.addEventListener('input', upd); upd();
-    return { item: i, size, qty, node: h('tr', null, h('td', null, pick(i)), h('td', null, size), h('td', null, qty), h('td', null, stock)) };
+    const lotBox = h('div', { class: 'lotpick row', style: 'gap:6px' });
+    const row = { item: i, size, qty, lotSel: null };
+    const drawLot = async () => { row.lotSel = await lotSelect(i.id, size.value); mount(lotBox, row.lotSel ? [row.lotSel] : []); };
+    size.addEventListener('change', () => { upd(); drawLot(); }); qty.addEventListener('input', upd); upd(); drawLot();
+    row.node = h('tr', null, h('td', null, pick(i)), h('td', null, size), h('td', null, qty), h('td', null, stock, lotBox));
+    return row;
   });
   const kind = h('select', null, ['planned', 'hire', 'lost', 'unfit'].map((k) => h('option', { value: k }, t(`guards.kind.${k}`))));
   const needsNote = () => ['lost', 'unfit'].includes(kind.value);
@@ -228,7 +233,7 @@ async function manualIssuance(p, reload) {
       { label: t('common.cancel') },
       { label: t('guards.sendSign'), kind: 'primary', keepOpen: true, onClick: async ({ close }) => {
         err.classList.add('hidden');
-        const lines = rows.filter((r) => Number(r.qty.value) > 0).map((r) => ({ item_id: r.item.id, size: r.size.value, qty: Number(r.qty.value) }));
+        const lines = rows.filter((r) => Number(r.qty.value) > 0).map((r) => ({ item_id: r.item.id, size: r.size.value, qty: Number(r.qty.value), lot_id: lotValue(r.lotSel) }));
         const fail = (m) => { err.textContent = m; err.classList.remove('hidden'); return false; };
         if (!lines.length) return fail(t('guards.pickItems'));
         if (lines.some((l) => !l.size)) return fail(t('err.sizeRequired'));

@@ -82,16 +82,25 @@ export async function render(box) {
     const price = h('input', { type: 'number', min: 0, step: '0.01', required: true });
     const date = h('input', { type: 'date', value: '' });
     let size = null;
+    // the lot (code) this stock belongs to; its price is filled in
+    const lotBox = h('div');
+    let lotSel = null; let lotRows = [];
+    const drawLot = async () => {
+      lotRows = item.value ? await db(sb.from('item_lots').select('*').eq('item_id', item.value).order('year', { ascending: false })) : [];
+      lotSel = h('select', null, h('option', { value: '' }, t('lots.noLot')), lotRows.map((l) => h('option', { value: l.id }, `${l.code} · ${l.year}`)));
+      lotSel.addEventListener('change', () => { const l = lotRows.find((x) => x.id === lotSel.value); if (l && l.unit_price !== null) price.value = l.unit_price; });
+      mount(lotBox, h('label', { class: 'field' }, h('span', null, t('lots.lot')), lotSel), lotRows.length ? null : h('p', { class: 'muted small' }, t('lots.addFirst')));
+    };
     const drawSize = () => {
       const it = S.itemById.get(item.value);
       size = it ? sizeSelect(it.size_type, '', { blank: true }) : h('select', { disabled: true });
       mount(sizeBox, h('label', { class: 'field' }, h('span', null, t('req.size')), size));
     };
-    item.addEventListener('change', drawSize); drawSize();
+    item.addEventListener('change', () => { drawSize(); drawLot(); }); drawSize(); drawLot();
     openModal({
       title: t('stock.addOpening'),
       body: h('div', { class: 'stack' }, h('p', { class: 'muted small' }, t('stock.openingHint')), h('p', { class: 'muted small' }, t('stock.dateOptional')),
-        h('label', { class: 'field' }, h('span', null, t('req.item')), item), sizeBox,
+        h('label', { class: 'field' }, h('span', null, t('req.item')), item), sizeBox, lotBox,
         h('div', { class: 'grid3' },
           h('label', { class: 'field' }, h('span', null, t('req.qty')), qty),
           h('label', { class: 'field' }, h('span', null, t('stock.price')), price),
@@ -101,7 +110,7 @@ export async function render(box) {
         if (!item.value || !size.value) throw new Error('size is required on every line');
         if (!Number.isInteger(q) || q < 1 || !(p >= 0) || price.value === '') throw new Error(t('err.unknown'));
         const { data: { user } } = await sb.auth.getUser();
-        await db(sb.from('stock_batches').insert({ item_id: item.value, size: size.value, qty_received: q, qty_remaining: q, unit_price: p, received_on: date.value || null, basis: 'opening balance', created_by: user.id }));
+        await db(sb.from('stock_batches').insert({ item_id: item.value, size: size.value, qty_received: q, qty_remaining: q, unit_price: p, received_on: date.value || null, basis: 'opening balance', created_by: user.id, lot_id: lotSel && lotSel.value ? lotSel.value : null }));
         toast(t('common.saved'), 'ok'); await reload();
       } }],
     });

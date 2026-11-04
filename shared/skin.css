@@ -121,3 +121,6 @@ input[type=text], input[type=password], input[type=number], input[type=date], in
 .bigphoto { width: 100%; max-height: 70vh; object-fit: contain; border-radius: 12px; }
 .lotpick { margin-top: 6px; font-size: 13px; }
 .lotpick select { min-height: 32px; padding: 3px 8px; font-size: 13px; }
+.folder.item > summary { font-size: 15px; flex-wrap: wrap; row-gap: 2px; }
+.folder.item .itemname { font-weight: 800; }
+.folder-sum { font-size: 12.5px; font-weight: 600; color: var(--muted); margin-right: 22px; }

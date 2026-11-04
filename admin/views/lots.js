@@ -6,6 +6,7 @@ import { itemSelect } from '../common.js';
 
 const CATS = ['winter', 'summer', 'sport', 'equipment'];
 const BUCKET = 'lot-photos';
+let view = (() => { try { return sessionStorage.getItem('lots.view') === 'items' ? 'items' : 'time'; } catch { return 'time'; } })();
 const openFolders = new Set(); // folders the admin has opened: kept while the page reloads
 const money = (n) => (n === null || n === undefined ? '—' : `$${Number(n).toFixed(2).replace(/\.00$/, '')}`);
 const catOf = (item) => (item && CATS.includes(item.category) ? item.category : 'equipment');
@@ -151,28 +152,52 @@ export async function render(box) {
       });
     }
 
-    // folders: year → category, like documents in folders
-    const years = [...new Set(lots.map((l) => l.year))].sort((a, b) => b - a);
-    if (years.length && !openFolders.size) openFolders.add(`y${years[0]}`);
+    // folders, like documents: either year → category, or category → item with every lot of that item over all time
     const folder = (key, summary, body, cls = '') => {
       const d = h('details', { class: `folder ${cls}` }, h('summary', null, summary), body);
       d.open = openFolders.has(key);
       d.addEventListener('toggle', () => { if (d.open) openFolders.add(key); else openFolders.delete(key); });
       return d;
     };
-    const tree = years.map((y) => {
-      const inYear = lots.filter((l) => l.year === y);
-      const cats = CATS.map((c) => {
-        const ls = inYear.filter((l) => catOf(S.itemById.get(l.item_id)) === c).sort((a, b) => itemName(a.item_id).localeCompare(itemName(b.item_id)));
-        if (!ls.length) return null;
-        return folder(`y${y}c${c}`, [h('span', { class: `dot ${c}` }), t(`lots.cat.${c}`), h('span', { class: 'folder-n' }, String(ls.length))], h('div', { class: 'lotgrid' }, ls.map(card)), `cat ${c}`);
+    const byName = (a, b) => itemName(a.item_id).localeCompare(itemName(b.item_id));
+    const catHead = (c, n) => [h('span', { class: `dot ${c}` }), t(`lots.cat.${c}`), h('span', { class: 'folder-n' }, String(n))];
+    let tree;
+    if (view === 'time') {
+      const years = [...new Set(lots.map((l) => l.year))].sort((a, b) => b - a);
+      if (years.length && !openFolders.size) openFolders.add(`y${years[0]}`);
+      tree = years.map((y) => {
+        const inYear = lots.filter((l) => l.year === y);
+        const cats = CATS.map((c) => {
+          const ls = inYear.filter((l) => catOf(S.itemById.get(l.item_id)) === c).sort(byName);
+          return ls.length ? folder(`y${y}c${c}`, catHead(c, ls.length), h('div', { class: 'lotgrid' }, ls.map(card)), `cat ${c}`) : null;
+        }).filter(Boolean);
+        return folder(`y${y}`, [String(y), h('span', { class: 'folder-n' }, String(inYear.length))], h('div', { class: 'stack' }, cats), 'year');
+      });
+    } else {
+      tree = CATS.map((c) => {
+        const ids = [...new Set(lots.filter((l) => catOf(S.itemById.get(l.item_id)) === c).map((l) => l.item_id))]
+          .sort((a, b) => itemName(a).localeCompare(itemName(b)));
+        if (!ids.length) return null;
+        const inCat = lots.filter((l) => catOf(S.itemById.get(l.item_id)) === c);
+        const items = ids.map((id) => {
+          const ls = lots.filter((l) => l.item_id === id).sort((a, b) => b.year - a.year || b.code.localeCompare(a.code));
+          const bought = ls.reduce((n, l) => n + (l.qty || 0), 0);
+          const inStock = ls.reduce((n, l) => n + (left.get(l.id) || 0), 0);
+          const spent = ls.reduce((n, l) => n + (l.qty && l.unit_price !== null ? l.qty * l.unit_price : 0), 0);
+          const sum = [bought ? `${t('lots.bought')} ${bought}` : null, `${t('lots.left', { n: inStock })}`, spent ? money(spent) : null].filter(Boolean).join(' · ');
+          return folder(`i${id}`, [h('span', { class: 'itemname' }, itemName(id)), h('span', { class: 'folder-sum' }, sum)], h('div', { class: 'lotgrid' }, ls.map(card)), 'item');
+        });
+        return folder(`c${c}`, catHead(c, ids.length), h('div', { class: 'stack' }, items), `cat ${c}`);
       }).filter(Boolean);
-      return folder(`y${y}`, [String(y), h('span', { class: 'folder-n' }, String(inYear.length))], h('div', { class: 'stack' }, cats), 'year');
-    });
+    }
+    const seg = h('div', { class: 'seg', role: 'group' },
+      ...[['time', 'lots.viewTime'], ['items', 'lots.viewItems']].map(([v, k]) => h('button', { type: 'button', 'aria-pressed': String(view === v), onclick: () => {
+        view = v; try { sessionStorage.setItem('lots.view', v); } catch { /* private mode */ } load();
+      } }, t(k))));
 
     mount(page,
       h('div', { class: 'page-head' }, h('div', null, h('h1', null, t('nav.lots')), h('p', { class: 'sub' }, t('lots.sub'))),
-        h('div', { class: 'row' }, h('button', { class: 'btn', type: 'button', onclick: (e) => run(e.currentTarget, load) }, t('common.refresh')),
+        h('div', { class: 'row' }, seg, h('button', { class: 'btn', type: 'button', onclick: (e) => run(e.currentTarget, load) }, t('common.refresh')),
           h('button', { class: 'btn primary', type: 'button', onclick: () => lotModal(null) }, t('lots.add')))),
       tree.length ? h('div', { class: 'stack' }, tree) : empty(t('lots.none')));
   }

@@ -23,7 +23,7 @@ export const ADMIN = {
   'adj.real': ['Фактически на складе', 'Real quantity on hand', 'Ammarda hakyky sany'],
   'adj.current': ['В системе: {n} шт., из них в резерве {r}', 'In system: {n}, of which reserved {r}', 'Ulgamda: {n}, şonuň {r} rezerwde'],
   'nav.fit': ['Не по размеру', 'Off-size', 'Ölçegine görä däl'],
-  'fit.title': ['Выдано не по размеру', 'Issued off-size', 'Ölçegine görä däl berlenler'],
+  'fit.title': ['Выдано не по размеру', 'Issued off-size', 'Ölçeginden üýtgeşik berlenler'],
   'fit.sub': ['Вещи, выданные размером, который отличается от размера в карточке охранника.', 'Items issued in a size different from the one on the guard card.', 'Garawulyň kartoçkasyndaky ölçeginden tapawutly berlen zatlar.'],
   'fit.cardHint': ['Размер в карточке → выданный размер', 'Card size → issued size', 'Kartoçkadaky ölçeg → berlen ölçeg'],
   'fit.cardToIssued': ['Карточка → выдано', 'Card → issued', 'Kartoçka → berlen'],

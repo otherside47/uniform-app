@@ -86,7 +86,9 @@ input[type=text], input[type=password], input[type=number], input[type=date], in
 }
 @media (max-width: 719px) {
   .topbar { gap: 6px; padding: 8px 12px; }
-  .brand-sub { display: none; }
+  /* phone: the role only (Admin / GSO), the app name is dropped to save room */
+  .brand-main, .brand-dot { display: none; }
+  .brand-sub { font-weight: 800; }
   .langs button { min-width: 34px; padding: 0 6px; }
   .themes button { min-width: 34px; padding: 0 6px; }
   .topbar > button { padding: 4px 10px; }

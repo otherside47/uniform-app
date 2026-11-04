@@ -96,7 +96,7 @@ export function themeSwitch() {
 
 export function topbar({ title, profile, onLogout }) {
   return h('header', { class: 'topbar' },
-    h('span', { class: 'brand' }, ...(title.includes(' · ') ? [title.split(' · ')[0], h('span', { class: 'brand-sub' }, ` · ${title.split(' · ').slice(1).join(' · ')}`)] : [title])),
+    h('span', { class: 'brand' }, ...(title.includes(' · ') ? [h('span', { class: 'brand-main' }, title.split(' · ')[0]), h('span', { class: 'brand-dot' }, ' · '), h('span', { class: 'brand-sub' }, title.split(' · ').slice(1).join(' · '))] : [title])),
     h('span', { class: 'who' }, profile.login ? `${profile.login}` : ''),
     langSwitch(true),
     themeSwitch(),

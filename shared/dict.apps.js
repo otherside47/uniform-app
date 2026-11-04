@@ -32,7 +32,7 @@ export const APPS = {
   'g.last': ['выдано {date}', 'issued {date}', 'berlen {date}'],
   'g.due': ['Пора менять', 'Due for replacement', 'Çalyşmaly wagty geldi'],
   'g.dueFirst': ['Положено', 'You are due', 'Degişli'],
-  'g.notBefore': ['Не раньше {date}', 'Not before {date}', '{date} çenli däl'],
+  'g.notBefore': ['Не раньше {date}', 'Not before {date}', '{date} soň'],
   'g.notDue': ['Пока не положено', 'Not due yet', 'Entek degişli däl'],
   'g.request': ['Запросить', 'Request', 'Haýyş et'],
   'g.setSize': ['Указать размер', 'Set size', 'Ölçegi görkez'],
@@ -100,7 +100,7 @@ export const APPS = {
 
   'g.genderTitle': ['Ваш пол', 'Your gender', 'Jynsyňyz'],
   'g.genderHint': ['Выбирается один раз: по нему приложение покажет подходящие вещи и размеры. Позже изменить может только администратор.', 'Chosen once: the app uses it to show matching items and sizes. Only an admin can change it later.', 'Bir gezek saýlanýar: programma şoňa görä degişli zatlary we ölçegleri görkezýär. Soňra diňe admin üýtgedip biler.'],
-  'g.sizesSub': ['Выберите размер для каждой вещи отдельно: у разных производителей размеры отличаются. Первый выбор сохраняется сразу; любое следующее изменение нужно подтвердить, админ его увидит.', 'Choose a size for each item separately: sizes differ between makers. The first choice is saved at once; every later change needs confirmation and the admin sees it.', 'Her zat üçin ölçegi aýratyn saýlaň: öndürijilerde ölçegler tapawutlanýar. Ilkinji saýlaw hemen saklanýar; soňky üýtgeşmeler tassyklanýar we admin görýär.'],
+  'g.sizesSub': ['Выберите размер для каждой вещи отдельно: у разных производителей размеры отличаются. Первый выбор сохраняется сразу; любое следующее изменение нужно подтвердить, админ его увидит.', 'Choose a size for each item separately: sizes differ between makers. The first choice is saved at once; every later change needs confirmation and the admin sees it.', 'Her zat üçin ölçegi aýratyn saýlaň: öndürijilerde ölçegler tapawutlanýar. Ilkinji saýlaw häziriň özünde saklanýar; soňky üýtgeşmeler tassyklanýar we admin görýär.'],
   'g.sizeSaved': ['Размер сохранён', 'Size saved', 'Ölçeg saklandy'],
 
   'g.reviewsSub': ['Оцените вещи, которые получили. Админы не видят, кто написал отзыв.', 'Rate the items you have received. Admins cannot see who wrote a review.', 'Alan zatlaryňyzy baha beriň. Adminler syny kimiň ýazanyny görmeýär.'],

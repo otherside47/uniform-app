@@ -23,8 +23,9 @@ export async function render(box) {
     const totalPieces = levelRows.reduce((s, r) => s + r.on_hand, 0);
     const totalValue = batches.reduce((s, b) => s + (inBudget(b.item_id) ? b.qty_remaining * Number(b.unit_price || 0) : 0), 0);
 
-    const folders = [];
-    for (const it of S.items) {
+    const CATS = ['winter', 'summer', 'sport', 'equipment'];
+    const byCat = new Map(CATS.map((c) => [c, []]));
+    for (const it of [...S.items].sort((a, b) => itemName(a.id).localeCompare(itemName(b.id)))) {
       const rows = (byItem.get(it.id) || []).filter((r) => r.on_hand > 0 || r.reserved > 0).sort((a, b) => String(a.size).localeCompare(String(b.size), undefined, { numeric: true }));
       if (!rows.length) continue;
       const trs = rows.map((r) => h('tr', null, h('td', null, r.size), h('td', { class: 'r num' }, int(r.on_hand)),
@@ -38,8 +39,16 @@ export async function render(box) {
         tableOf([t('req.size'), { label: t('stock.onHand'), r: true }, { label: t('stock.reserved'), r: true }, { label: t('stock.available'), r: true }, ''], trs));
       d.open = openItems.has(it.id);
       d.addEventListener('toggle', () => { if (d.open) openItems.add(it.id); else openItems.delete(it.id); });
-      folders.push(d);
+      byCat.get(CATS.includes(it.category) ? it.category : 'equipment').push(d);
     }
+    const folders = CATS.filter((c) => byCat.get(c).length).map((c) => {
+      const cd = h('details', { class: `folder cat ${c}` },
+        h('summary', null, h('span', { class: `dot ${c}` }), t(`lots.cat.${c}`), h('span', { class: 'folder-n' }, String(byCat.get(c).length))),
+        h('div', { class: 'stack-sm' }, byCat.get(c)));
+      cd.open = openItems.has(`cat:${c}`);
+      cd.addEventListener('toggle', () => { if (cd.open) openItems.add(`cat:${c}`); else openItems.delete(`cat:${c}`); });
+      return cd;
+    });
 
     mount(page,
       h('div', { class: 'page-head' },

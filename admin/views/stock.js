@@ -58,15 +58,15 @@ export async function render(box) {
           h('button', { class: 'btn', type: 'button', onclick: () => adjustModal({ onDone: load }) }, t('adj.title')),
           h('button', { class: 'btn', type: 'button', onclick: () => notifyModal(batches, load) }, t('stock.notify')),
           h('button', { class: 'btn primary', type: 'button', onclick: () => openingModal(load) }, t('stock.addOpening')))),
-      h('section', { class: 'section' },
+      notices.length ? h('section', { class: 'section' },
         h('div', { class: 'head' }, h('h2', null, t('stock.notices'))),
-        notices.length ? tableOf([t('stock.received'), t('req.item'), t('stock.notifyNote'), ''],
+        tableOf([t('stock.received'), t('req.item'), t('stock.notifyNote'), ''],
           notices.map((n) => h('tr', null, h('td', { class: 'nowrap' }, fmtDay(n.created_at)), h('td', null, n.item_ids.map((id) => itemName(id)).join(', ')), h('td', { class: 'small muted' }, n.note || ''),
             h('td', { class: 'r' }, h('button', { class: 'btn ghost sm', type: 'button', onclick: (e) => run(e.currentTarget, async () => {
               if (!(await confirmBox(t('stock.withdrawAsk'), { danger: true, confirm: t('stock.withdraw') }))) return;
               await db(sb.rpc('withdraw_announcement', { p_id: n.id }));
               toast(t('stock.withdrawn'), 'ok'); await load();
-            }) }, t('stock.withdraw')))))) : empty(t('stock.noticesNone'))),
+            }) }, t('stock.withdraw'))))))) : null,
       h('section', { class: 'section' },
         h('div', { class: 'head' }, h('h2', null, t('stock.levels')), h('span', { class: 'muted small' }, t('stock.levelsHint'))),
         folders.length ? h('div', { class: 'stack-sm' }, folders) : empty(t('stock.none'))),

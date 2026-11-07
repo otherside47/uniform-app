@@ -5,6 +5,8 @@ import { S, inBudget, db, itemName, levelsMap } from '../data.js';
 import { tableOf, sizeSelect, itemSelect } from '../common.js';
 import { adjustModal } from './stockfix.js';
 
+const openItems = new Set(); // item folders the admin has opened, kept across reloads
+
 export async function render(box) {
   const page = h('div', { class: 'stack-lg' });
   mount(box, page); mount(page, loading());
@@ -21,16 +23,22 @@ export async function render(box) {
     const totalPieces = levelRows.reduce((s, r) => s + r.on_hand, 0);
     const totalValue = batches.reduce((s, b) => s + (inBudget(b.item_id) ? b.qty_remaining * Number(b.unit_price || 0) : 0), 0);
 
-    const itemRows = [];
+    const folders = [];
     for (const it of S.items) {
       const rows = (byItem.get(it.id) || []).filter((r) => r.on_hand > 0 || r.reserved > 0).sort((a, b) => String(a.size).localeCompare(String(b.size), undefined, { numeric: true }));
       if (!rows.length) continue;
-      for (const r of rows) {
-        itemRows.push(h('tr', null, h('td', null, h('a', { href: `#/items/${it.id}` }, itemName(it.id)), it.active ? null : [' ', chip(t('common.inactive'))]), h('td', null, r.size), h('td', { class: 'r num' }, int(r.on_hand)),
-          h('td', { class: 'r num' }, r.reserved ? int(r.reserved) : '—'),
-          h('td', { class: 'r num' }, h('b', null, int(r.available))),
-          h('td', { class: 'r' }, h('button', { class: 'btn ghost sm', type: 'button', onclick: () => adjustModal({ itemId: it.id, size: r.size, onDone: load }) }, t('adj.fix')))));
-      }
+      const trs = rows.map((r) => h('tr', null, h('td', null, r.size), h('td', { class: 'r num' }, int(r.on_hand)),
+        h('td', { class: 'r num' }, r.reserved ? int(r.reserved) : '—'),
+        h('td', { class: 'r num' }, h('b', null, int(r.available))),
+        h('td', { class: 'r' }, h('button', { class: 'btn ghost sm', type: 'button', onclick: () => adjustModal({ itemId: it.id, size: r.size, onDone: load }) }, t('adj.fix')))));
+      const hand = rows.reduce((x, r) => x + r.on_hand, 0), avail = rows.reduce((x, r) => x + r.available, 0);
+      const d = h('details', { class: 'folder item' },
+        h('summary', null, h('span', { class: `dot ${it.category || ''}` }), h('span', { class: 'itemname' }, itemName(it.id)), it.active ? null : chip(t('common.inactive')),
+          h('span', { class: 'folder-sum' }, `${t('stock.onHand')}: ${int(hand)} · ${t('stock.available')}: ${int(avail)}`)),
+        tableOf([t('req.size'), { label: t('stock.onHand'), r: true }, { label: t('stock.reserved'), r: true }, { label: t('stock.available'), r: true }, ''], trs));
+      d.open = openItems.has(it.id);
+      d.addEventListener('toggle', () => { if (d.open) openItems.add(it.id); else openItems.delete(it.id); });
+      folders.push(d);
     }
 
     mount(page,
@@ -42,16 +50,6 @@ export async function render(box) {
           h('button', { class: 'btn', type: 'button', onclick: () => notifyModal(batches, load) }, t('stock.notify')),
           h('button', { class: 'btn primary', type: 'button', onclick: () => openingModal(load) }, t('stock.addOpening')))),
       h('section', { class: 'section' },
-        h('div', { class: 'head' }, h('h2', null, t('stock.levels')), h('span', { class: 'muted small' }, t('stock.levelsHint'))),
-        itemRows.length ? tableOf([t('req.item'), t('req.size'), { label: t('stock.onHand'), r: true }, { label: t('stock.reserved'), r: true }, { label: t('stock.available'), r: true }, ''], itemRows) : empty(t('stock.none'))),
-      h('section', { class: 'section' },
-        h('div', { class: 'head' }, h('h2', null, t('stock.batches')),
-          h('label', { class: 'inline-check small' }, h('input', { type: 'checkbox', checked: showBatches, onchange: (e) => { showBatches = e.target.checked; load(); } }), t('stock.showBatches'))),
-        showBatches ? (batches.length ? tableOf([t('stock.received'), t('req.item'), t('req.size'), { label: t('stock.left'), r: true }, { label: t('stock.price'), r: true }, t('stock.basis')],
-          batches.map((b) => h('tr', null, h('td', { class: 'nowrap' }, b.received_on ? fmtDay(b.received_on) : t('stock.preSystem')), h('td', null, itemName(b.item_id)), h('td', null, b.size),
-            h('td', { class: 'r num' }, `${int(b.qty_remaining)} / ${int(b.qty_received)}`), h('td', { class: 'r num' }, money(b.unit_price)),
-            h('td', { class: 'small muted' }, b.order_id ? t('stock.fromOrder') : (b.basis || ''))))) : empty(t('stock.none'))) : null),
-      h('section', { class: 'section' },
         h('div', { class: 'head' }, h('h2', null, t('stock.notices'))),
         notices.length ? tableOf([t('stock.received'), t('req.item'), t('stock.notifyNote'), ''],
           notices.map((n) => h('tr', null, h('td', { class: 'nowrap' }, fmtDay(n.created_at)), h('td', null, n.item_ids.map((id) => itemName(id)).join(', ')), h('td', { class: 'small muted' }, n.note || ''),
@@ -59,7 +57,18 @@ export async function render(box) {
               if (!(await confirmBox(t('stock.withdrawAsk'), { danger: true, confirm: t('stock.withdraw') }))) return;
               await db(sb.rpc('withdraw_announcement', { p_id: n.id }));
               toast(t('stock.withdrawn'), 'ok'); await load();
-            }) }, t('stock.withdraw')))))) : empty(t('stock.noticesNone'))));
+            }) }, t('stock.withdraw')))))) : empty(t('stock.noticesNone'))),
+      h('section', { class: 'section' },
+        h('div', { class: 'head' }, h('h2', null, t('stock.levels')), h('span', { class: 'muted small' }, t('stock.levelsHint'))),
+        folders.length ? h('div', { class: 'stack-sm' }, folders) : empty(t('stock.none'))),
+      h('section', { class: 'section' },
+        h('div', { class: 'head' }, h('h2', null, t('stock.batches')),
+          h('label', { class: 'inline-check small' }, h('input', { type: 'checkbox', checked: showBatches, onchange: (e) => { showBatches = e.target.checked; load(); } }), t('stock.showBatches'))),
+        showBatches ? (batches.length ? tableOf([t('stock.received'), t('req.item'), t('req.size'), { label: t('stock.left'), r: true }, { label: t('stock.price'), r: true }, t('stock.basis')],
+          batches.map((b) => h('tr', null, h('td', { class: 'nowrap' }, b.received_on ? fmtDay(b.received_on) : t('stock.preSystem')), h('td', null, itemName(b.item_id)), h('td', null, b.size),
+            h('td', { class: 'r num' }, `${int(b.qty_remaining)} / ${int(b.qty_received)}`), h('td', { class: 'r num' }, money(b.unit_price)),
+            h('td', { class: 'small muted' }, b.order_id ? t('stock.fromOrder') : (b.basis || ''))))) : empty(t('stock.none'))) : null),
+    );
   }
 
   function notifyModal(batches, reload) {

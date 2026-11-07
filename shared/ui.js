@@ -80,10 +80,20 @@ export const int = (n) => Number(n || 0).toLocaleString('en-US');
 /* ---------- toasts, busy buttons, errors ---------- */
 let toastBox;
 export function toast(msg, kind = '') {
-  if (!toastBox) { toastBox = h('div', { id: 'toasts', 'aria-live': 'polite' }); document.body.appendChild(toastBox); }
+  if (!toastBox) {
+    toastBox = h('div', { id: 'toasts', 'aria-live': 'polite' });
+    toastBox.setAttribute('popover', 'manual'); // top layer: shows above an open dialog, not behind it
+    document.body.appendChild(toastBox);
+  }
   const el = h('div', { class: `toast ${kind}` }, msg);
   toastBox.appendChild(el);
-  setTimeout(() => el.remove(), kind === 'bad' ? 7000 : 3500);
+  try { toastBox.hidePopover(); } catch { /* not open yet */ }
+  try { toastBox.showPopover(); } catch { /* old browser: z-index fallback */ } // re-opened last so it sits over the newest dialog
+  // 2 s pause, then a soft fade-out
+  setTimeout(() => {
+    el.classList.add('out');
+    setTimeout(() => { el.remove(); if (!toastBox.children.length) { try { toastBox.hidePopover(); } catch { /* ignore */ } } }, 600);
+  }, 2000);
 }
 
 const ERRORS = [

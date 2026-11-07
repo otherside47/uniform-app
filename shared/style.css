@@ -296,13 +296,16 @@ dialog.modal[open] { display: flex; flex-direction: column; }
 .modal-head { padding: 16px 20px 12px; border-bottom: 1px solid var(--rule); display: flex; justify-content: space-between; gap: 12px; align-items: center; }
 .modal-body { padding: 16px 20px; overflow-y: auto; }
 .modal-foot { padding: 12px 20px; border-top: 1px solid var(--rule); display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
-#toasts { position: fixed; right: 16px; bottom: 16px; z-index: 100; display: flex; flex-direction: column; gap: 8px; max-width: min(380px, calc(100vw - 32px)); }
-.toast { padding: 10px 14px; border-radius: var(--radius); background: var(--ink); color: var(--paper); box-shadow: 0 4px 16px rgb(0 0 0 / .25); }
+#toasts { position: fixed; inset: 14px auto auto 50%; transform: translateX(-50%); width: max-content; margin: 0; padding: 0; border: 0; background: none; overflow: visible; z-index: 1000; display: flex; flex-direction: column; align-items: center; gap: 8px; max-width: min(460px, calc(100vw - 24px)); pointer-events: none; }
+#toasts:not(:popover-open) { display: none; }
+.toast { padding: 10px 14px; border-radius: var(--radius); background: var(--ink); color: var(--paper); box-shadow: 0 6px 22px rgb(0 0 0 / .3); font-weight: 600; text-align: center; }
 .toast.bad { background: var(--red); color: #fff; }
 .toast.ok { background: var(--green); color: #fff; }
+.toast.out { opacity: 0; }
 @media (prefers-reduced-motion: no-preference) {
-  .toast { animation: toast-in .18s ease-out; }
-  @keyframes toast-in { from { opacity: 0; transform: translateY(6px); } }
+  .toast { animation: toast-in .2s ease-out; transition: opacity .6s ease, transform .6s ease; }
+  .toast.out { opacity: 0; transform: translateY(-8px); }
+  @keyframes toast-in { from { opacity: 0; transform: translateY(-10px); } }
 }
 
 /* ---------- login ---------- */
@@ -372,7 +375,7 @@ dialog.modal[open] { display: flex; flex-direction: column; }
   .tag { min-width: 0; }
   .tag.lg { min-width: 0; width: 100%; }
   .tag.lg .tag-no { font-size: 44px; }
-  #toasts { left: 12px; right: 12px; bottom: calc(76px + env(safe-area-inset-bottom)); max-width: none; }
+  #toasts { inset: calc(10px + env(safe-area-inset-top)) auto auto 50%; max-width: calc(100vw - 24px); }
   .page-head > .row, .spread > .row { width: 100%; }
   .page-head > .row > .btn, .spread > .row > .btn { flex: 1 1 140px; }
 }

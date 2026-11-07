@@ -140,7 +140,7 @@ export async function render(box, ctx, onChange) {
     return h('section', { class: `gcard${unread ? ' new' : ''}` },
       h('h2', { style: 'margin-bottom:4px' }, t('g.newStock')),
       list.map((n) => h('div', { class: 'item-row' },
-        h('div', null, h('div', { class: n.created_at > seenAt ? 'name' : 'muted' }, names(n)), n.note ? h('div', { class: 'muted small' }, n.note) : null),
+        h('div', null, h('div', { class: n.created_at > seenAt ? 'name' : 'muted' }, names(n) || n.note), names(n) && n.note ? h('div', { class: 'muted small' }, n.note) : null),
         h('div', { class: 'muted small' }, fmtDay(n.created_at)))),
       unread ? h('button', { class: 'btn primary', type: 'button', style: 'margin-top:12px', onclick: (e) => run(e.currentTarget, async () => { await db(sb.rpc('mark_announcements_seen')); await load(); onChange(); }) }, t('g.gotIt')) : null);
   }

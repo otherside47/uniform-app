@@ -73,7 +73,7 @@ export async function render(box) {
         h('label', { class: 'field' }, h('span', null, t('stock.notifyNote')), note)),
       actions: [{ label: t('common.cancel') }, { label: t('stock.notifySend'), kind: 'primary', onClick: async () => {
         const ids = boxes.filter((b) => b.cb.checked).map((b) => b.it.id);
-        if (!ids.length) throw new Error(t('stock.notifyPickOne'));
+        if (!ids.length && !note.value.trim()) throw new Error(t('stock.notifyPickOne'));
         await db(sb.rpc('publish_announcement', { p_items: ids, p_note: note.value }));
         toast(t('stock.notifySent'), 'ok'); await reload();
       } }],

@@ -1,5 +1,5 @@
 import { sb } from '../../shared/auth.js';
-import { h, mount, loading, empty, chip, toast, run, openModal, money, int, fmtDay, todayYmd } from '../../shared/ui.js';
+import { h, mount, loading, empty, chip, toast, run, openModal, confirmBox, money, int, fmtDay, todayYmd } from '../../shared/ui.js';
 import { t } from '../../shared/i18n.js';
 import { S, inBudget, db, itemName, levelsMap } from '../data.js';
 import { tableOf, sizeSelect, itemSelect } from '../common.js';
@@ -53,8 +53,13 @@ export async function render(box) {
             h('td', { class: 'small muted' }, b.order_id ? t('stock.fromOrder') : (b.basis || ''))))) : empty(t('stock.none'))) : null),
       h('section', { class: 'section' },
         h('div', { class: 'head' }, h('h2', null, t('stock.notices'))),
-        notices.length ? tableOf([t('stock.received'), t('req.item'), t('stock.notifyNote')],
-          notices.map((n) => h('tr', null, h('td', { class: 'nowrap' }, fmtDay(n.created_at)), h('td', null, n.item_ids.map((id) => itemName(id)).join(', ')), h('td', { class: 'small muted' }, n.note || '')))) : empty(t('stock.noticesNone'))));
+        notices.length ? tableOf([t('stock.received'), t('req.item'), t('stock.notifyNote'), ''],
+          notices.map((n) => h('tr', null, h('td', { class: 'nowrap' }, fmtDay(n.created_at)), h('td', null, n.item_ids.map((id) => itemName(id)).join(', ')), h('td', { class: 'small muted' }, n.note || ''),
+            h('td', { class: 'r' }, h('button', { class: 'btn ghost sm', type: 'button', onclick: (e) => run(e.currentTarget, async () => {
+              if (!(await confirmBox(t('stock.withdrawAsk'), { danger: true, confirm: t('stock.withdraw') }))) return;
+              await db(sb.rpc('withdraw_announcement', { p_id: n.id }));
+              toast(t('stock.withdrawn'), 'ok'); await load();
+            }) }, t('stock.withdraw')))))) : empty(t('stock.noticesNone'))));
   }
 
   function notifyModal(batches, reload) {

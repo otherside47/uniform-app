@@ -13,7 +13,7 @@ export async function loadRefs(profile) {
     db(sb.from('season_config').select('*')),
   ]);
   // items of the other gender are hidden once the guard has chosen theirs; history still resolves every item name
-  G.items = items.filter((x) => (!x.gender || !profile.gender || x.gender === profile.gender) && (!x.leader_only || profile.is_shift_leader));
+  G.items = items.filter((x) => (!x.gender || !profile.gender || x.gender === profile.gender) && (!x.leader_only || profile.is_shift_leader) && !x.guard_hidden);
   G.itemById = new Map(items.map((x) => [x.id, x]));
   G.types = types; G.typeByCode = new Map(types.map((x) => [x.code, x]));
   G.sizes = new Map(sizes.map((x) => [x.item_id, x.value])); // size per catalog item

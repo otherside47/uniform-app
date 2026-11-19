@@ -50,7 +50,9 @@ export async function render(box) {
     for (const r of ordered) { if (!byGuard.has(r.guard_id)) byGuard.set(r.guard_id, []); byGuard.get(r.guard_id).push(r); }
     const guardBlocks = [...byGuard.entries()].sort((a, b) => {
       const ga = a[1].some((r) => r.group_id) ? 0 : 1, gb = b[1].some((r) => r.group_id) ? 0 : 1;
-      return ga - gb || a[1][0].created_at.localeCompare(b[1][0].created_at);
+      // newest guard on top (by the latest request); stock is still allocated first-come-first-served above
+      const la = a[1].reduce((m, r) => (r.created_at > m ? r.created_at : m), ''), lb = b[1].reduce((m, r) => (r.created_at > m ? r.created_at : m), '');
+      return ga - gb || lb.localeCompare(la);
     });
 
     mount(page,
